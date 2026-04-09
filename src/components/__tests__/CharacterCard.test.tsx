@@ -19,23 +19,30 @@ vi.mock('next/link', () => ({
   ),
 }));
 
+vi.mock('next/image', () => ({
+  default: ({ src, alt, ...props }: { src: string; alt: string; [key: string]: unknown }) => (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src={src} alt={alt} {...props} />
+  ),
+}));
+
 const DEFAULT_PROPS = {
   id: 'luna',
   name: 'Luna',
   description: 'A dreamy poet who speaks in metaphors.',
   tags: ['Creative', 'Poetic', 'Gentle'],
-  profileEmoji: '\uD83C\uDF19',
+  profileImage: { src: '/img/luna.png', height: 512, width: 512 },
 };
 
 describe('CharacterCard', () => {
-  it('renders character name, description, and profileEmoji', () => {
+  it('renders character name, description, and profile image', () => {
     render(<CharacterCard {...DEFAULT_PROPS} />);
 
     expect(screen.getByText('Luna')).toBeInTheDocument();
     expect(
       screen.getByText('A dreamy poet who speaks in metaphors.'),
     ).toBeInTheDocument();
-    expect(screen.getByText('\uD83C\uDF19')).toBeInTheDocument();
+    expect(screen.getByAltText('Luna 프로필 이미지')).toBeInTheDocument();
   });
 
   it('renders all tags as badges', () => {
