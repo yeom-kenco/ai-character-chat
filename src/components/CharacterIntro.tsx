@@ -57,6 +57,28 @@ export default function CharacterIntro({
         onClick={handleBackdropClick}
       />
 
+      <button
+        type="button"
+        onClick={handleBackdropClick}
+        aria-label="닫기"
+        className="absolute right-4 top-4 z-20 rounded-full p-2 text-white/70 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="28"
+          height="28"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+      </button>
+
       <div className="relative z-10 flex max-w-3xl flex-col items-center gap-8 px-6 sm:flex-row sm:items-center">
         <div className="relative h-72 w-56 shrink-0 overflow-hidden rounded-2xl sm:h-96 sm:w-72">
           <Image
