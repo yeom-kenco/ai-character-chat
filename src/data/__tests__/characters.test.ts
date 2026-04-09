@@ -28,18 +28,18 @@ describe('characters array', () => {
     const character = characters.find((c) => c.id === id)!;
     expect(character).toBeDefined();
 
-    // String fields must be non-empty
-    expect(character.id).toBeTruthy();
-    expect(character.name).toBeTruthy();
-    expect(character.description).toBeTruthy();
-    expect(character.profileEmoji).toBeTruthy();
-    expect(character.greeting).toBeTruthy();
-    expect(character.systemPrompt).toBeTruthy();
+    // String fields must be non-empty (trimmed)
+    expect(character.id.trim().length).toBeGreaterThan(0);
+    expect(character.name.trim().length).toBeGreaterThan(0);
+    expect(character.description.trim().length).toBeGreaterThan(0);
+    expect(character.profileEmoji.trim().length).toBeGreaterThan(0);
+    expect(character.greeting.trim().length).toBeGreaterThan(0);
+    expect(character.systemPrompt.trim().length).toBeGreaterThan(0);
 
     // tags must be a non-empty array of non-empty strings
     expect(character.tags.length).toBeGreaterThan(0);
     character.tags.forEach((tag) => {
-      expect(tag).toBeTruthy();
+      expect(tag.trim().length).toBeGreaterThan(0);
     });
   });
 
