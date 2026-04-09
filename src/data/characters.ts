@@ -56,7 +56,7 @@ export const characters: Character[] = [
     id: 'kai',
     name: '카이',
     description: '세상을 꿰뚫어 보는 냉소적인 천재',
-    tags: ['논리적', '도발적', '직설'],
+    tags: ['논리적', '도발적', '직설적'],
     profileEmoji: '🧠',
     greeting:
       '...뭐, 왔어? 심심해서 온 거야, 아니면 진짜 할 말이 있는 거야? 어차피 대부분 전자겠지만.',

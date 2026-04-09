@@ -45,7 +45,7 @@ export default function CharacterIntro({
       className={`fixed inset-0 z-50 flex items-center justify-center transition-opacity duration-400 ${visible ? 'opacity-100' : 'opacity-0'}`}
     >
       <div
-        className="absolute inset-0 bg-black/80"
+        className="absolute inset-0 bg-black/90"
         onClick={handleBackdropClick}
         onKeyDown={(e) => {
           if (e.key === 'Escape') handleBackdropClick();
