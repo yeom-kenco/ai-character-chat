@@ -1,0 +1,7 @@
+# Personal Claude Code config
+agents/
+commands/
+
+# Personal docs
+PRD_AI캐릭터채팅서비스.md
+REFACTORING_GUIDE.md
