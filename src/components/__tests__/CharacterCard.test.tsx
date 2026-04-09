@@ -1,37 +1,30 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom/vitest';
 import CharacterCard from '../CharacterCard';
 
-vi.mock('next/link', () => ({
+vi.mock('next/image', () => ({
   default: ({
-    href,
-    children,
+    src,
+    alt,
     ...props
   }: {
-    href: string;
-    children: React.ReactNode;
+    src: string;
+    alt: string;
     [key: string]: unknown;
   }) => (
-    <a href={href} {...props}>
-      {children}
-    </a>
-  ),
-}));
-
-vi.mock('next/image', () => ({
-  default: ({ src, alt, ...props }: { src: string; alt: string; [key: string]: unknown }) => (
     // eslint-disable-next-line @next/next/no-img-element
     <img src={src} alt={alt} {...props} />
   ),
 }));
 
 const DEFAULT_PROPS = {
-  id: 'luna',
   name: 'Luna',
   description: 'A dreamy poet who speaks in metaphors.',
   tags: ['Creative', 'Poetic', 'Gentle'],
   profileImage: { src: '/img/luna.png', height: 512, width: 512 },
+  onClick: vi.fn(),
 };
 
 describe('CharacterCard', () => {
@@ -53,11 +46,12 @@ describe('CharacterCard', () => {
     }
   });
 
-  it('links to the correct /chat/{id} URL', () => {
-    render(<CharacterCard {...DEFAULT_PROPS} />);
+  it('calls onClick when clicked', async () => {
+    const handleClick = vi.fn();
+    render(<CharacterCard {...DEFAULT_PROPS} onClick={handleClick} />);
 
-    const link = screen.getByRole('link');
-    expect(link).toHaveAttribute('href', '/chat/luna');
+    await userEvent.click(screen.getByRole('button'));
+    expect(handleClick).toHaveBeenCalledOnce();
   });
 
   it('renders with an article semantic HTML element', () => {
