@@ -42,17 +42,17 @@ export default function CharacterIntro({
     <div
       role="dialog"
       aria-label={`${name} 소개`}
+      tabIndex={-1}
+      ref={(el) => el?.focus()}
+      onKeyDown={(e) => {
+        if (e.key === 'Escape') handleBackdropClick();
+      }}
       className={`fixed inset-0 z-50 flex items-center justify-center transition-opacity duration-400 ${visible ? 'opacity-100' : 'opacity-0'}`}
     >
       <div
         className="absolute inset-0 bg-black/90"
+        aria-hidden="true"
         onClick={handleBackdropClick}
-        onKeyDown={(e) => {
-          if (e.key === 'Escape') handleBackdropClick();
-        }}
-        role="button"
-        tabIndex={-1}
-        aria-label="닫기"
       />
 
       <div className="relative z-10 flex max-w-3xl flex-col items-center gap-8 px-6 sm:flex-row sm:items-center">
