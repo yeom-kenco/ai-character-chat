@@ -2,7 +2,7 @@
 
 import Image, { StaticImageData } from 'next/image';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 interface CharacterIntroProps {
   characterId: string;
@@ -20,10 +20,12 @@ export default function CharacterIntro({
   onClose,
 }: CharacterIntroProps) {
   const router = useRouter();
+  const containerRef = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
     requestAnimationFrame(() => setVisible(true));
+    containerRef.current?.focus();
   }, []);
 
   const handleStart = () => {
@@ -43,9 +45,9 @@ export default function CharacterIntro({
       role="dialog"
       aria-label={`${name} 소개`}
       tabIndex={-1}
-      ref={(el) => el?.focus()}
+      ref={containerRef}
       onKeyDown={(e) => {
-        if (e.key === 'Escape') handleBackdropClick();
+        if (e.key === 'Escape' && !e.repeat) handleBackdropClick();
       }}
       className={`fixed inset-0 z-50 flex items-center justify-center transition-opacity duration-400 ${visible ? 'opacity-100' : 'opacity-0'}`}
     >
