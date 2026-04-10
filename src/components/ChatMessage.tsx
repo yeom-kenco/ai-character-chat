@@ -1,12 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Image, { StaticImageData } from 'next/image';
-import { prepare, layout } from '@chenglou/pretext';
-
-const PRETEXT_FONT = '14px Geist';
-const PRETEXT_LINE_HEIGHT = 20;
-const BUBBLE_PADDING_Y = 24;
 
 interface ChatMessageProps {
   role: 'user' | 'assistant';
@@ -27,20 +21,6 @@ function formatTime(ts: number): string {
   });
 }
 
-function useBubbleHeight(content: string, bubbleWidth: number): number {
-  return useMemo(() => {
-    const trimmed = content.trimEnd();
-    if (!trimmed || bubbleWidth <= 0) return 0;
-
-    const textWidth = bubbleWidth - 32;
-    const prepared = prepare(trimmed, PRETEXT_FONT, {
-      whiteSpace: 'pre-wrap',
-    });
-    const result = layout(prepared, textWidth, PRETEXT_LINE_HEIGHT);
-    return result.height + BUBBLE_PADDING_Y;
-  }, [content, bubbleWidth]);
-}
-
 export default function ChatMessage({
   role,
   content,
@@ -50,45 +30,11 @@ export default function ChatMessage({
   timestamp,
   onRegenerate,
 }: ChatMessageProps) {
-  const [bubbleWidth, setBubbleWidth] = useState(0);
-  const bubbleRef = useCallback((node: HTMLDivElement | null) => {
-    if (node) setBubbleWidth(node.offsetWidth);
-  }, []);
-  const resizeRef = useRef<HTMLDivElement | null>(null);
-  const preHeight = useBubbleHeight(content, bubbleWidth);
-
-  useEffect(() => {
-    const el = resizeRef.current;
-    if (!el) return;
-
-    let lastWidth = 0;
-    const observer = new ResizeObserver(([entry]) => {
-      const newWidth = Math.round(entry.contentRect.width + 32);
-      if (newWidth !== lastWidth) {
-        lastWidth = newWidth;
-        setBubbleWidth(newWidth);
-      }
-    });
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
-
-  const setBothRefs = useCallback(
-    (node: HTMLDivElement | null) => {
-      resizeRef.current = node;
-      bubbleRef(node);
-    },
-    [bubbleRef],
-  );
 
   if (role === 'user') {
     return (
       <div className="flex flex-col items-end gap-1">
-        <div
-          ref={setBothRefs}
-          className="max-w-[75%] rounded-2xl rounded-br-sm bg-indigo-600/80 px-4 py-3 text-sm text-white"
-          style={preHeight > 0 ? { minHeight: preHeight } : undefined}
-        >
+        <div className="max-w-[75%] rounded-2xl rounded-br-sm bg-indigo-600/80 px-4 py-3 text-sm text-white">
           <p className="whitespace-pre-wrap">{content}</p>
         </div>
         {timestamp != null && (
@@ -119,11 +65,7 @@ export default function ChatMessage({
             {characterName}
           </p>
         )}
-        <div
-          ref={setBothRefs}
-          className="rounded-2xl rounded-tl-sm bg-white/10 px-4 py-3 text-sm text-white/90"
-          style={preHeight > 0 ? { minHeight: preHeight } : undefined}
-        >
+        <div className="rounded-2xl rounded-tl-sm bg-white/10 px-4 py-3 text-sm text-white/90">
           {content ? (
             <p className="whitespace-pre-wrap">{content}</p>
           ) : isStreaming ? (
