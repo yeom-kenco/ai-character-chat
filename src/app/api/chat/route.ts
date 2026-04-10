@@ -12,6 +12,7 @@ interface ChatRequest {
   characterId: string;
   messages: ChatMessage[];
   summary?: string;
+  userName?: string;
 }
 
 const MAX_SUMMARY_LENGTH = 2000;
@@ -33,8 +34,10 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const { characterId, messages, summary: rawSummary } = body;
+  const { characterId, messages, summary: rawSummary, userName } = body;
   const summary = sanitizeSummary(rawSummary);
+  const sanitizedUserName =
+    typeof userName === 'string' ? userName.trim().slice(0, 20) : undefined;
 
   if (!characterId || !Array.isArray(messages) || messages.length === 0) {
     return NextResponse.json(
@@ -85,8 +88,12 @@ export async function POST(request: NextRequest) {
           );
         }
 
+        const systemPrompt = sanitizedUserName
+          ? `${character.systemPrompt}\n\n## 사용자 정보\n상대방의 이름은 "${sanitizedUserName}"이다. 캐릭터의 성격과 말투에 맞는 호칭으로 이름을 자연스럽게 불러라.`
+          : character.systemPrompt;
+
         const openaiMessages = [
-          { role: 'system' as const, content: character.systemPrompt },
+          { role: 'system' as const, content: systemPrompt },
           ...contextMessages.map((m) => ({
             role: m.role as 'user' | 'assistant',
             content: m.content,

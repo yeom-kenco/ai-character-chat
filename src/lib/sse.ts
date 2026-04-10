@@ -2,6 +2,7 @@ interface StreamChatOptions {
   characterId: string;
   messages: { role: 'user' | 'assistant'; content: string }[];
   summary?: string;
+  userName?: string;
   onToken: (token: string) => void;
   onDone: () => void;
   onError: (error: string) => void;
@@ -14,6 +15,7 @@ export async function streamChat({
   characterId,
   messages,
   summary,
+  userName,
   onToken,
   onDone,
   onError,
@@ -24,7 +26,7 @@ export async function streamChat({
   const response = await fetch('/api/chat', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ characterId, messages, summary }),
+    body: JSON.stringify({ characterId, messages, summary, userName }),
     signal,
   });
 

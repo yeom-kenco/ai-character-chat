@@ -29,6 +29,7 @@ export default function ChatRoom({
   const [messages, setMessages] = useState<Message[]>([
     { id: 'greeting', role: 'assistant', content: greeting },
   ]);
+  const [userName, setUserName] = useState<string>('');
   const [isStreaming, setIsStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [summary, setSummary] = useState<string | undefined>(undefined);
@@ -64,6 +65,7 @@ export default function ChatRoom({
   }, [messages, isStreaming, scrollToBottom]);
 
   useEffect(() => {
+    setUserName(localStorage.getItem('userName') ?? '');
     return () => {
       abortControllerRef.current?.abort();
       cancelAnimationFrame(rafRef.current);
@@ -129,6 +131,7 @@ export default function ChatRoom({
         characterId,
         messages: apiMessages,
         summary,
+        userName: userName || undefined,
         signal: controller.signal,
         onToken: (token) => {
           setMessages((prev) => {
