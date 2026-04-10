@@ -1,19 +1,6 @@
-import { beforeAll, describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
-
-beforeAll(() => {
-  global.ResizeObserver = class {
-    observe() {}
-    unobserve() {}
-    disconnect() {}
-  } as unknown as typeof ResizeObserver;
-});
-
-vi.mock('@chenglou/pretext', () => ({
-  prepare: () => ({}),
-  layout: () => ({ height: 0, lineCount: 0 }),
-}));
 
 import ChatMessage from '../ChatMessage';
 
@@ -39,7 +26,7 @@ describe('ChatMessage', () => {
     expect(screen.getByText('Hello there!')).toBeInTheDocument();
     expect(screen.queryByText('Luna')).not.toBeInTheDocument();
 
-    const wrapper = screen.getByText('Hello there!').closest('div[class*="justify-end"]');
+    const wrapper = screen.getByText('Hello there!').closest('div[class*="items-end"]');
     expect(wrapper).toBeInTheDocument();
   });
 

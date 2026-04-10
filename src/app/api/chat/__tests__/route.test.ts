@@ -2,8 +2,9 @@
 import { afterEach, describe, it, expect, vi } from 'vitest';
 import { NextRequest } from 'next/server';
 
-vi.mock('@/lib/gemini', () => ({
-  getGeminiClient: vi.fn(),
+vi.mock('@/lib/openai', () => ({
+  getOpenAIClient: vi.fn(),
+  OPENAI_MODEL: 'gpt-4o-mini',
 }));
 
 vi.mock('@/lib/context', () => ({
@@ -13,9 +14,9 @@ vi.mock('@/lib/context', () => ({
 }));
 
 import { POST } from '../route';
-import { getGeminiClient } from '@/lib/gemini';
+import { getOpenAIClient } from '@/lib/openai';
 
-const mockedGetGeminiClient = vi.mocked(getGeminiClient);
+const mockedGetOpenAIClient = vi.mocked(getOpenAIClient);
 
 function createRequest(body: unknown) {
   return new NextRequest('http://localhost/api/chat', {
@@ -89,9 +90,9 @@ describe('POST /api/chat', () => {
     expect(data.error).toBe('존재하지 않는 캐릭터입니다: nonexistent');
   });
 
-  it('returns 500 when GEMINI_API_KEY is not set', async () => {
-    mockedGetGeminiClient.mockImplementation(() => {
-      throw new Error('GEMINI_API_KEY 환경변수가 설정되지 않았습니다.');
+  it('returns 500 when OPENAI_API_KEY is not set', async () => {
+    mockedGetOpenAIClient.mockImplementation(() => {
+      throw new Error('OPENAI_API_KEY 환경변수가 설정되지 않았습니다.');
     });
 
     const response = await POST(

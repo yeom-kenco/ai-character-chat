@@ -20,7 +20,7 @@ export default function CharacterCard({
       <button
         type="button"
         onClick={onClick}
-        className="group flex h-full w-full flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white text-left transition-all hover:border-zinc-400 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500 focus-visible:ring-offset-2 dark:border-zinc-700 dark:bg-zinc-900 dark:hover:border-zinc-500"
+        className="group flex h-full w-full flex-col overflow-hidden rounded-2xl border border-white/10 bg-white/5 text-left backdrop-blur-sm transition-all hover:border-white/25 hover:bg-white/10 hover:shadow-lg hover:shadow-black/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
       >
         <div className="relative aspect-3/4 w-full overflow-hidden">
           <Image
@@ -32,17 +32,17 @@ export default function CharacterCard({
           />
         </div>
         <div className="flex flex-1 flex-col p-5">
-          <h2 className="mb-1 text-lg font-bold text-zinc-900 dark:text-zinc-100">
+          <h2 className="mb-1 text-lg font-bold text-white/90">
             {name}
           </h2>
-          <p className="mb-4 flex-1 text-sm text-zinc-500 dark:text-zinc-400">
+          <p className="mb-4 flex-1 text-sm text-white/50">
             {description}
           </p>
           <div className="flex flex-wrap gap-2">
             {tags.map((tag) => (
               <span
                 key={tag}
-                className="whitespace-nowrap rounded-full bg-zinc-100 px-3 py-1 text-xs font-medium text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300"
+                className="whitespace-nowrap rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-white/60"
               >
                 {tag}
               </span>

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getGeminiClient, GEMINI_MODEL } from '@/lib/gemini';
+import { getOpenAIClient, OPENAI_MODEL } from '@/lib/openai';
 import { getCharacterById } from '@/data/characters';
 import { buildContextMessages } from '@/lib/context';
 
@@ -12,6 +12,7 @@ interface ChatRequest {
   characterId: string;
   messages: ChatMessage[];
   summary?: string;
+  userName?: string;
 }
 
 const MAX_SUMMARY_LENGTH = 2000;
@@ -33,8 +34,10 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const { characterId, messages, summary: rawSummary } = body;
+  const { characterId, messages, summary: rawSummary, userName } = body;
   const summary = sanitizeSummary(rawSummary);
+  const sanitizedUserName =
+    typeof userName === 'string' ? userName.trim().slice(0, 20) : undefined;
 
   if (!characterId || !Array.isArray(messages) || messages.length === 0) {
     return NextResponse.json(
@@ -54,7 +57,7 @@ export async function POST(request: NextRequest) {
 
   let client;
   try {
-    client = getGeminiClient();
+    client = getOpenAIClient();
   } catch {
     return NextResponse.json(
       { error: 'API 키가 설정되지 않았습니다.' },
@@ -85,10 +88,17 @@ export async function POST(request: NextRequest) {
           );
         }
 
-        const geminiMessages = contextMessages.map((m) => ({
-          role: m.role === 'assistant' ? ('model' as const) : ('user' as const),
-          parts: [{ text: m.content }],
-        }));
+        const systemPrompt = sanitizedUserName
+          ? `${character.systemPrompt}\n\n## 사용자 정보\n상대방의 이름은 "${sanitizedUserName}"이다. 캐릭터의 성격과 말투에 맞는 호칭으로 이름을 자연스럽게 불러라.`
+          : character.systemPrompt;
+
+        const openaiMessages = [
+          { role: 'system' as const, content: systemPrompt },
+          ...contextMessages.map((m) => ({
+            role: m.role as 'user' | 'assistant',
+            content: m.content,
+          })),
+        ];
 
         const MAX_RETRIES = 3;
         let lastError: unknown;
@@ -97,18 +107,16 @@ export async function POST(request: NextRequest) {
           let receivedTokens = false;
 
           try {
-            const response = await client.models.generateContentStream({
-              model: GEMINI_MODEL,
-              config: {
-                systemInstruction: character.systemPrompt,
-                temperature: character.temperature,
-                maxOutputTokens: character.maxTokens,
-              },
-              contents: geminiMessages,
+            const response = await client.chat.completions.create({
+              model: OPENAI_MODEL,
+              messages: openaiMessages,
+              max_tokens: character.maxTokens,
+              temperature: character.temperature,
+              stream: true,
             });
 
             for await (const chunk of response) {
-              const text = chunk.text;
+              const text = chunk.choices[0]?.delta?.content;
               if (text) {
                 receivedTokens = true;
                 const data = JSON.stringify({ content: text });
@@ -122,10 +130,10 @@ export async function POST(request: NextRequest) {
             lastError = err;
             const isRetryable =
               err instanceof Error &&
-              (err.message.includes('503') ||
-                err.message.includes('UNAVAILABLE') ||
-                err.message.includes('429') ||
-                err.message.includes('high demand'));
+              (err.message.includes('429') ||
+                err.message.includes('500') ||
+                err.message.includes('503') ||
+                err.message.includes('Rate limit'));
 
             if (!isRetryable || attempt === MAX_RETRIES - 1) break;
 

@@ -22,13 +22,19 @@ export default function CharacterIntro({
   const router = useRouter();
   const containerRef = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
+  const [userName, setUserName] = useState('');
 
   useEffect(() => {
     requestAnimationFrame(() => setVisible(true));
     containerRef.current?.focus();
+    const saved = localStorage.getItem('userName');
+    if (saved) setUserName(saved);
   }, []);
 
   const handleStart = () => {
+    const trimmed = userName.trim();
+    if (!trimmed) return;
+    localStorage.setItem('userName', trimmed);
     setVisible(false);
     setTimeout(() => {
       router.push(`/chat/${characterId}`);
@@ -93,13 +99,28 @@ export default function CharacterIntro({
 
         <div className="flex flex-col items-center text-center sm:items-start sm:text-left">
           <h2 className="mb-4 text-2xl font-bold text-white">{name}</h2>
-          <p className="mb-8 max-w-sm text-lg leading-relaxed text-zinc-300">
+          <p className="mb-6 max-w-sm text-lg leading-relaxed text-zinc-300">
             &ldquo;{greeting}&rdquo;
           </p>
+          <label className="mb-4 flex w-full max-w-sm flex-col gap-1.5">
+            <span className="text-sm text-zinc-400">이름을 알려주세요</span>
+            <input
+              type="text"
+              value={userName}
+              onChange={(e) => setUserName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.nativeEvent.isComposing) handleStart();
+              }}
+              placeholder="이름 입력"
+              maxLength={20}
+              className="rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white placeholder-zinc-500 outline-none transition-colors focus:border-white/30"
+            />
+          </label>
           <button
             type="button"
             onClick={handleStart}
-            className="rounded-full bg-white px-8 py-3 text-sm font-semibold text-zinc-900 transition-colors hover:bg-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+            disabled={!userName.trim()}
+            className="rounded-full bg-white px-8 py-3 text-sm font-semibold text-zinc-900 transition-colors hover:bg-zinc-200 disabled:opacity-30 disabled:hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black"
           >
             대화 시작하기
           </button>

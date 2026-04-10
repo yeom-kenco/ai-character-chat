@@ -1,35 +1,35 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { StaticImageData } from 'next/image';
+import Image, { StaticImageData } from 'next/image';
 import Link from 'next/link';
 import ChatMessage from './ChatMessage';
 import ChatInput from './ChatInput';
 import ErrorMessage from './ErrorMessage';
 import { streamChat } from '@/lib/sse';
-import { splitIntoMessages } from '@/lib/splitMessages';
 import type { Message } from '@/types/chat';
-
-const MESSAGE_SPLIT_DELAY = 800;
 
 interface ChatRoomProps {
   characterId: string;
   characterName: string;
+  characterDescription: string;
   characterImage: StaticImageData;
+  accentColor: string;
   greeting: string;
 }
 
 export default function ChatRoom({
   characterId,
   characterName,
+  characterDescription,
   characterImage,
+  accentColor,
   greeting,
 }: ChatRoomProps) {
-  const initialMessages: Message[] = [
+  const [messages, setMessages] = useState<Message[]>([
     { id: 'greeting', role: 'assistant', content: greeting },
-  ];
-
-  const [messages, setMessages] = useState<Message[]>(initialMessages);
+  ]);
+  const [userName, setUserName] = useState<string>('');
   const [isStreaming, setIsStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [summary, setSummary] = useState<string | undefined>(undefined);
@@ -39,27 +39,36 @@ export default function ChatRoom({
   const isUserScrolledUpRef = useRef(false);
   const abortControllerRef = useRef<AbortController | null>(null);
   const lastUserContentRef = useRef<string>('');
-  const splitTimeoutsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const rafRef = useRef<number>(0);
 
-  const scrollToBottom = useCallback(() => {
-    if (!isUserScrolledUpRef.current) {
+  const scrollToBottom = useCallback((smooth = true) => {
+    if (isUserScrolledUpRef.current) return;
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    if (smooth) {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      container.scrollTop = container.scrollHeight;
     }
   }, []);
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages, scrollToBottom]);
-
-  const clearSplitTimeouts = () => {
-    splitTimeoutsRef.current.forEach(clearTimeout);
-    splitTimeoutsRef.current = [];
-  };
+    if (isStreaming) {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = requestAnimationFrame(() => {
+        scrollToBottom(false);
+      });
+    } else {
+      scrollToBottom(true);
+    }
+  }, [messages, isStreaming, scrollToBottom]);
 
   useEffect(() => {
+    setUserName(localStorage.getItem('userName') ?? '');
     return () => {
       abortControllerRef.current?.abort();
-      clearSplitTimeouts();
+      cancelAnimationFrame(rafRef.current);
     };
   }, []);
 
@@ -73,8 +82,7 @@ export default function ChatRoom({
 
   const handleNewChat = () => {
     abortControllerRef.current?.abort();
-    clearSplitTimeouts();
-    setMessages(initialMessages);
+    setMessages([{ id: 'greeting', role: 'assistant', content: greeting }]);
     setSummary(undefined);
     setError(null);
     setIsStreaming(false);
@@ -88,19 +96,22 @@ export default function ChatRoom({
 
   const handleSend = async (content: string) => {
     lastUserContentRef.current = content;
-    clearSplitTimeouts();
     setError(null);
 
+    const now = Date.now();
+
     const userMessage: Message = {
-      id: `user-${Date.now()}`,
+      id: `user-${now}`,
       role: 'user',
       content,
+      timestamp: now,
     };
 
     const assistantMessage: Message = {
-      id: `assistant-${Date.now()}`,
+      id: `assistant-${now}`,
       role: 'assistant',
       content: '',
+      timestamp: now,
     };
 
     setMessages((prev) => [...prev, userMessage, assistantMessage]);
@@ -120,6 +131,7 @@ export default function ChatRoom({
         characterId,
         messages: apiMessages,
         summary,
+        userName: userName || undefined,
         signal: controller.signal,
         onToken: (token) => {
           setMessages((prev) => {
@@ -132,45 +144,7 @@ export default function ChatRoom({
             return updated;
           });
         },
-        onDone: () => {
-          setMessages((prev) => {
-            const lastMsg = prev[prev.length - 1];
-            if (lastMsg.role !== 'assistant' || !lastMsg.content) return prev;
-
-            const chunks = splitIntoMessages(lastMsg.content);
-            if (chunks.length <= 1) return prev;
-
-            const withoutLast = prev.slice(0, -1);
-            const firstChunk: Message = {
-              ...lastMsg,
-              content: chunks[0],
-            };
-
-            const splitMessages: Message[] = chunks.slice(1).map((chunk, i) => ({
-              id: `${lastMsg.id}-split-${i}`,
-              role: 'assistant' as const,
-              content: '',
-            }));
-
-            const result = [...withoutLast, firstChunk, ...splitMessages];
-
-            // 시간차로 분할 메시지 내용을 채움
-            chunks.slice(1).forEach((chunk, i) => {
-              const timeoutId = setTimeout(() => {
-                setMessages((current) =>
-                  current.map((m) =>
-                    m.id === `${lastMsg.id}-split-${i}`
-                      ? { ...m, content: chunk }
-                      : m,
-                  ),
-                );
-              }, MESSAGE_SPLIT_DELAY * (i + 1));
-              splitTimeoutsRef.current.push(timeoutId);
-            });
-
-            return result;
-          });
-        },
+        onDone: () => {},
         onError: (errorMsg) => {
           setError(errorMsg);
           setMessages((prev) => prev.slice(0, -2));
@@ -204,44 +178,62 @@ export default function ChatRoom({
   };
 
   return (
-    <div className="flex h-dvh flex-col">
-      <header className="flex items-center gap-3 border-b border-zinc-200 px-4 py-3 dark:border-zinc-700">
-        <Link
-          href="/"
-          aria-label="뒤로가기"
-          className="rounded-lg p-1 text-zinc-500 transition-colors hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+    <div className="flex h-dvh flex-col bg-[#0a0f1a]">
+      <header>
+        <div className="flex items-center gap-3 px-4 py-3">
+          <Link
+            href="/"
+            aria-label="뒤로가기"
+            className="rounded-lg p-1 text-white/50 transition-colors hover:text-white"
           >
-            <polyline points="15 18 9 12 15 6" />
-          </svg>
-        </Link>
-        <h1 className="flex-1 text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-          {characterName}
-        </h1>
-        <button
-          type="button"
-          onClick={handleNewChat}
-          disabled={isStreaming}
-          className="rounded-lg px-3 py-1 text-xs font-medium text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 disabled:opacity-30 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
-        >
-          새 대화
-        </button>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
+          </Link>
+          <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full">
+            <Image
+              src={characterImage}
+              alt={characterName}
+              fill
+              className="object-cover object-top"
+              sizes="36px"
+            />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h1 className="text-sm font-semibold text-white/90">
+              {characterName}
+            </h1>
+            <p className="truncate text-xs text-white/40">
+              {characterDescription}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={handleNewChat}
+            disabled={isStreaming}
+            className="rounded-lg px-3 py-1 text-xs font-medium text-white/40 transition-colors hover:bg-white/10 hover:text-white disabled:opacity-30"
+          >
+            새 대화
+          </button>
+        </div>
+        <div className="h-0.5" style={{ backgroundColor: accentColor }} />
       </header>
 
       <main
         ref={scrollContainerRef}
         onScroll={handleScroll}
         className="flex-1 overflow-y-auto px-4 py-4"
+        style={{ overflowAnchor: 'none' }}
       >
         <div
           role="log"
@@ -253,6 +245,7 @@ export default function ChatRoom({
               key={message.id}
               role={message.role}
               content={message.content}
+              timestamp={message.timestamp}
               characterName={
                 message.role === 'assistant' ? characterName : undefined
               }
@@ -263,6 +256,14 @@ export default function ChatRoom({
                 isStreaming &&
                 message.id === messages[messages.length - 1].id &&
                 message.role === 'assistant'
+              }
+              onRegenerate={
+                !isStreaming &&
+                message.role === 'assistant' &&
+                message.id === messages[messages.length - 1].id &&
+                message.id !== 'greeting'
+                  ? handleRetry
+                  : undefined
               }
             />
           ))}

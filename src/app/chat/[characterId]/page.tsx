@@ -49,7 +49,9 @@ export default async function ChatPage({ params }: ChatPageProps) {
     <ChatRoom
       characterId={character.id}
       characterName={character.name}
+      characterDescription={character.description}
       characterImage={profileImages[character.id]}
+      accentColor={character.accentColor}
       greeting={character.greeting}
     />
   );
