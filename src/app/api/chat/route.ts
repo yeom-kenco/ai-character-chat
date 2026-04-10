@@ -81,7 +81,9 @@ export async function POST(request: NextRequest) {
         const message =
           error instanceof Error ? error.message : 'Unknown error';
         const data = JSON.stringify({ error: message });
-        controller.enqueue(encoder.encode(`data: ${data}\n\n`));
+        controller.enqueue(
+          encoder.encode(`event: error\ndata: ${data}\n\n`),
+        );
         controller.close();
       }
     },
