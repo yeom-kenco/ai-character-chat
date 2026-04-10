@@ -1,4 +1,4 @@
-import { getGeminiClient } from './gemini';
+import { getGeminiClient, GEMINI_MODEL } from './gemini';
 
 interface SimpleMessage {
   role: 'user' | 'assistant';
@@ -23,7 +23,7 @@ export async function generateSummary(
     : `다음 대화를 요약해주세요. 사용자의 이름, 취향, 주요 대화 맥락을 반드시 포함하세요. 3~5문장으로 간결하게 작성하세요.\n\n${conversationText}`;
 
   const response = await client.models.generateContent({
-    model: 'gemini-2.5-flash',
+    model: GEMINI_MODEL,
     contents: prompt,
   });
 

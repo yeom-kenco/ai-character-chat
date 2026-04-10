@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getGeminiClient } from '@/lib/gemini';
+import { getGeminiClient, GEMINI_MODEL } from '@/lib/gemini';
 import { getCharacterById } from '@/data/characters';
 import { buildContextMessages } from '@/lib/context';
 
@@ -96,7 +96,7 @@ export async function POST(request: NextRequest) {
         for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
           try {
             const response = await client.models.generateContentStream({
-              model: 'gemini-2.5-flash',
+              model: GEMINI_MODEL,
               config: {
                 systemInstruction: character.systemPrompt,
                 temperature: character.temperature,
