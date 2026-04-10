@@ -1,4 +1,12 @@
+'use client';
+
+import { useMemo, useRef } from 'react';
 import Image, { StaticImageData } from 'next/image';
+import { prepare, layout } from '@chenglou/pretext';
+
+const PRETEXT_FONT = '14px Geist';
+const PRETEXT_LINE_HEIGHT = 20;
+const BUBBLE_PADDING_Y = 24;
 
 interface ChatMessageProps {
   role: 'user' | 'assistant';
@@ -8,6 +16,19 @@ interface ChatMessageProps {
   isStreaming?: boolean;
 }
 
+function useBubbleHeight(content: string, bubbleWidth: number): number {
+  return useMemo(() => {
+    if (!content || bubbleWidth <= 0) return 0;
+
+    const textWidth = bubbleWidth - 32;
+    const prepared = prepare(content, PRETEXT_FONT, {
+      whiteSpace: 'pre-wrap',
+    });
+    const result = layout(prepared, textWidth, PRETEXT_LINE_HEIGHT);
+    return result.height + BUBBLE_PADDING_Y;
+  }, [content, bubbleWidth]);
+}
+
 export default function ChatMessage({
   role,
   content,
@@ -15,10 +36,18 @@ export default function ChatMessage({
   characterImage,
   isStreaming = false,
 }: ChatMessageProps) {
+  const bubbleRef = useRef<HTMLDivElement>(null);
+  const bubbleWidth = bubbleRef.current?.offsetWidth ?? 0;
+  const preHeight = useBubbleHeight(content, bubbleWidth);
+
   if (role === 'user') {
     return (
       <div className="flex justify-end">
-        <div className="max-w-[75%] rounded-2xl rounded-br-sm bg-zinc-900 px-4 py-3 text-sm text-white dark:bg-zinc-100 dark:text-zinc-900">
+        <div
+          ref={bubbleRef}
+          className="max-w-[75%] rounded-2xl rounded-br-sm bg-zinc-900 px-4 py-3 text-sm text-white dark:bg-zinc-100 dark:text-zinc-900"
+          style={preHeight > 0 ? { minHeight: preHeight } : undefined}
+        >
           <p className="whitespace-pre-wrap">{content}</p>
         </div>
       </div>
@@ -44,7 +73,11 @@ export default function ChatMessage({
             {characterName}
           </p>
         )}
-        <div className="rounded-2xl rounded-tl-sm bg-zinc-100 px-4 py-3 text-sm text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100">
+        <div
+          ref={bubbleRef}
+          className="rounded-2xl rounded-tl-sm bg-zinc-100 px-4 py-3 text-sm text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100"
+          style={preHeight > 0 ? { minHeight: preHeight } : undefined}
+        >
           {content ? (
             <p className="whitespace-pre-wrap">{content}</p>
           ) : isStreaming ? (
