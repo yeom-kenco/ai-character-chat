@@ -55,15 +55,17 @@ export async function streamChat({
     const lines = buffer.split('\n');
     buffer = lines.pop() ?? '';
 
-    for (const line of lines) {
+    for (const rawLine of lines) {
+      const line = rawLine.replace(/\r$/, '');
+
       if (line.startsWith('event: ')) {
-        currentEvent = line.slice(7);
+        currentEvent = line.slice(7).trim();
         continue;
       }
 
       if (!line.startsWith('data: ')) continue;
 
-      const payload = line.slice(6);
+      const payload = line.slice(6).trim();
 
       if (payload === '[DONE]') {
         onDone();
