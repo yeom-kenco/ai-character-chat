@@ -2,6 +2,11 @@
 
 LLM 기반 캐릭터 페르소나 대화 서비스. 각각 고유한 성격, 말투, 감정 반응을 가진 AI 캐릭터와 실시간으로 대화합니다.
 
+
+https://github.com/user-attachments/assets/5e0c8875-3f2a-4642-b6a8-b79a96eeb562
+
+
+
 ## Characters
 
 | 캐릭터 | 설명 | 성격 |
