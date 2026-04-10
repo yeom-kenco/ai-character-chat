@@ -29,11 +29,9 @@ export default function ChatRoom({
   accentColor,
   greeting,
 }: ChatRoomProps) {
-  const initialMessages: Message[] = [
-    { id: 'greeting', role: 'assistant', content: greeting, timestamp: Date.now() },
-  ];
-
-  const [messages, setMessages] = useState<Message[]>(initialMessages);
+  const [messages, setMessages] = useState<Message[]>([
+    { id: 'greeting', role: 'assistant', content: greeting },
+  ]);
   const [isStreaming, setIsStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [summary, setSummary] = useState<string | undefined>(undefined);
@@ -78,7 +76,7 @@ export default function ChatRoom({
   const handleNewChat = () => {
     abortControllerRef.current?.abort();
     clearSplitTimeouts();
-    setMessages(initialMessages);
+    setMessages([{ id: 'greeting', role: 'assistant', content: greeting }]);
     setSummary(undefined);
     setError(null);
     setIsStreaming(false);
