@@ -85,7 +85,7 @@ export default function ChatMessage({
         >
           <p className="whitespace-pre-wrap">{content}</p>
         </div>
-        {timestamp && (
+        {timestamp != null && (
           <span className="text-[10px] text-white/30">
             {formatTime(timestamp)}
           </span>
@@ -124,7 +124,7 @@ export default function ChatMessage({
             <TypingIndicator />
           ) : null}
         </div>
-        {timestamp && content && (
+        {timestamp != null && content && (
           <div className="mt-1 flex items-center gap-2">
             <span className="text-[10px] text-white/30">
               {formatTime(timestamp)}
