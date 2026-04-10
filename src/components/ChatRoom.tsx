@@ -291,6 +291,14 @@ export default function ChatRoom({
                 message.id === messages[messages.length - 1].id &&
                 message.role === 'assistant'
               }
+              onRegenerate={
+                !isStreaming &&
+                message.role === 'assistant' &&
+                message.id === messages[messages.length - 1].id &&
+                message.id !== 'greeting'
+                  ? handleRetry
+                  : undefined
+              }
             />
           ))}
           <div ref={messagesEndRef} />

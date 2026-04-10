@@ -39,7 +39,7 @@ describe('ChatMessage', () => {
     expect(screen.getByText('Hello there!')).toBeInTheDocument();
     expect(screen.queryByText('Luna')).not.toBeInTheDocument();
 
-    const wrapper = screen.getByText('Hello there!').closest('div[class*="justify-end"]');
+    const wrapper = screen.getByText('Hello there!').closest('div[class*="items-end"]');
     expect(wrapper).toBeInTheDocument();
   });
 

@@ -15,6 +15,7 @@ interface ChatMessageProps {
   characterImage?: StaticImageData;
   isStreaming?: boolean;
   timestamp?: number;
+  onRegenerate?: () => void;
 }
 
 function formatTime(ts: number): string {
@@ -46,6 +47,7 @@ export default function ChatMessage({
   characterImage,
   isStreaming = false,
   timestamp,
+  onRegenerate,
 }: ChatMessageProps) {
   const [bubbleWidth, setBubbleWidth] = useState(0);
   const bubbleRef = useCallback((node: HTMLDivElement | null) => {
@@ -123,9 +125,36 @@ export default function ChatMessage({
           ) : null}
         </div>
         {timestamp && content && (
-          <span className="mt-1 text-[10px] text-zinc-400 dark:text-zinc-500">
-            {formatTime(timestamp)}
-          </span>
+          <div className="mt-1 flex items-center gap-2">
+            <span className="text-[10px] text-zinc-400 dark:text-zinc-500">
+              {formatTime(timestamp)}
+            </span>
+            {onRegenerate && (
+              <button
+                type="button"
+                onClick={onRegenerate}
+                aria-label="응답 재생성"
+                className="text-zinc-400 transition-colors hover:text-zinc-600 dark:text-zinc-500 dark:hover:text-zinc-300"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M21 2v6h-6" />
+                  <path d="M3 12a9 9 0 0 1 15-6.7L21 8" />
+                  <path d="M3 22v-6h6" />
+                  <path d="M21 12a9 9 0 0 1-15 6.7L3 16" />
+                </svg>
+              </button>
+            )}
+          </div>
         )}
       </div>
     </div>
