@@ -46,6 +46,12 @@ export default function ChatRoom({
     scrollToBottom();
   }, [messages, scrollToBottom]);
 
+  useEffect(() => {
+    return () => {
+      abortControllerRef.current?.abort();
+    };
+  }, []);
+
   const handleScroll = () => {
     const container = scrollContainerRef.current;
     if (!container) return;
@@ -81,30 +87,36 @@ export default function ChatRoom({
     const controller = new AbortController();
     abortControllerRef.current = controller;
 
-    await streamChat({
-      characterId,
-      messages: apiMessages,
-      signal: controller.signal,
-      onToken: (token) => {
-        setMessages((prev) => {
-          const updated = [...prev];
-          const last = updated[updated.length - 1];
-          updated[updated.length - 1] = {
-            ...last,
-            content: last.content + token,
-          };
-          return updated;
-        });
-      },
-      onDone: () => {
-        setIsStreaming(false);
-      },
-      onError: (errorMsg) => {
-        setIsStreaming(false);
-        setError(errorMsg);
-        setMessages((prev) => prev.slice(0, -1));
-      },
-    });
+    try {
+      await streamChat({
+        characterId,
+        messages: apiMessages,
+        signal: controller.signal,
+        onToken: (token) => {
+          setMessages((prev) => {
+            const updated = [...prev];
+            const last = updated[updated.length - 1];
+            updated[updated.length - 1] = {
+              ...last,
+              content: last.content + token,
+            };
+            return updated;
+          });
+        },
+        onDone: () => {
+          setIsStreaming(false);
+        },
+        onError: (errorMsg) => {
+          setIsStreaming(false);
+          setError(errorMsg);
+          setMessages((prev) => prev.slice(0, -1));
+        },
+      });
+    } catch {
+      // AbortError 등 — 언마운트 또는 재전송 시 정상적으로 발생
+    } finally {
+      setIsStreaming(false);
+    }
   };
 
   return (
