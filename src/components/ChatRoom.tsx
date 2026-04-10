@@ -178,7 +178,7 @@ export default function ChatRoom({
         </button>
       </header>
 
-      <div
+      <main
         ref={scrollContainerRef}
         onScroll={handleScroll}
         className="flex-1 overflow-y-auto px-4 py-4"
@@ -208,7 +208,7 @@ export default function ChatRoom({
           ))}
           <div ref={messagesEndRef} />
         </div>
-      </div>
+      </main>
 
       {error && <ErrorMessage message={error} onRetry={handleRetry} />}
 
