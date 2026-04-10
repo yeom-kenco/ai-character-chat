@@ -94,6 +94,8 @@ export async function POST(request: NextRequest) {
         let lastError: unknown;
 
         for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+          let receivedTokens = false;
+
           try {
             const response = await client.models.generateContentStream({
               model: GEMINI_MODEL,
@@ -108,6 +110,7 @@ export async function POST(request: NextRequest) {
             for await (const chunk of response) {
               const text = chunk.text;
               if (text) {
+                receivedTokens = true;
                 const data = JSON.stringify({ content: text });
                 controller.enqueue(encoder.encode(`data: ${data}\n\n`));
               }
@@ -125,6 +128,12 @@ export async function POST(request: NextRequest) {
                 err.message.includes('high demand'));
 
             if (!isRetryable || attempt === MAX_RETRIES - 1) break;
+
+            if (receivedTokens) {
+              controller.enqueue(
+                encoder.encode('event: retry\ndata: {}\n\n'),
+              );
+            }
 
             await new Promise((r) =>
               setTimeout(r, (attempt + 1) * 2000),
