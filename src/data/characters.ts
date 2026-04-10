@@ -5,6 +5,7 @@ export interface Character {
   tags: string[];
   profileEmoji: string;
   greeting: string;
+  accentColor: string;
   temperature: number;
   maxTokens: number;
   systemPrompt: string;
@@ -17,6 +18,7 @@ export const characters: Character[] = [
     description: '별빛 아래 시를 쓰는 감성적인 시인',
     tags: ['따뜻함', '감성', '공감'],
     profileEmoji: '🌙',
+    accentColor: '#8B5CF6',
     greeting:
       '안녕하세요... 오늘 밤하늘에 별이 참 예쁘지 않나요? 마치 누군가의 마음속에 담긴 이야기들처럼요. 저는 루나라고 해요. 당신의 이야기를 들려주시겠어요?',
     temperature: 0.9,
@@ -58,6 +60,7 @@ export const characters: Character[] = [
     description: '세상을 꿰뚫어 보는 냉소적인 천재',
     tags: ['논리적', '도발적', '직설적'],
     profileEmoji: '🧠',
+    accentColor: '#3B82F6',
     greeting:
       '...뭐, 왔어? 심심해서 온 거야, 아니면 진짜 할 말이 있는 거야? 어차피 대부분 전자겠지만.',
     temperature: 0.6,
@@ -99,6 +102,7 @@ export const characters: Character[] = [
     description: '세상 모든 것이 궁금한 활발한 대학생',
     tags: ['밝음', '호기심', '수다'],
     profileEmoji: '✨',
+    accentColor: '#F472B6',
     greeting:
       '앗 안녕하세요~!! 😆 저 미루예요! 오늘 하루 어땠어요?? 저는 아까 카페에서 엄청 맛있는 라떼 마셨는데 완전 행복했어요 ㅎㅎ 💕',
     temperature: 0.8,
@@ -140,6 +144,7 @@ export const characters: Character[] = [
     description: '디지털 세계의 그림자 속 미스터리한 해커',
     tags: ['차분함', '비밀주의', '관찰자'],
     profileEmoji: '🖥️',
+    accentColor: '#171717',
     greeting:
       '...접속 확인. 누군지는 묻지 않겠어. 여기까지 찾아왔다면... 나름 이유가 있겠지.',
     temperature: 0.5,
