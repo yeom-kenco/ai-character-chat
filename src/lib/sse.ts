@@ -1,24 +1,28 @@
 interface StreamChatOptions {
   characterId: string;
   messages: { role: 'user' | 'assistant'; content: string }[];
+  summary?: string;
   onToken: (token: string) => void;
   onDone: () => void;
   onError: (error: string) => void;
+  onSummary?: (summary: string) => void;
   signal?: AbortSignal;
 }
 
 export async function streamChat({
   characterId,
   messages,
+  summary,
   onToken,
   onDone,
   onError,
+  onSummary,
   signal,
 }: StreamChatOptions): Promise<void> {
   const response = await fetch('/api/chat', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ characterId, messages }),
+    body: JSON.stringify({ characterId, messages, summary }),
     signal,
   });
 
@@ -40,6 +44,7 @@ export async function streamChat({
 
   const decoder = new TextDecoder();
   let buffer = '';
+  let currentEvent = '';
 
   while (true) {
     const { done, value } = await reader.read();
@@ -51,7 +56,8 @@ export async function streamChat({
     buffer = lines.pop() ?? '';
 
     for (const line of lines) {
-      if (line.startsWith('event: error')) {
+      if (line.startsWith('event: ')) {
+        currentEvent = line.slice(7);
         continue;
       }
 
@@ -67,9 +73,16 @@ export async function streamChat({
       try {
         const parsed = JSON.parse(payload);
 
-        if (parsed.error) {
-          onError(parsed.error);
+        if (currentEvent === 'error') {
+          onError(parsed.error ?? 'Unknown error');
+          currentEvent = '';
           return;
+        }
+
+        if (currentEvent === 'summary') {
+          onSummary?.(parsed.summary);
+          currentEvent = '';
+          continue;
         }
 
         if (parsed.content) {
@@ -78,6 +91,8 @@ export async function streamChat({
       } catch {
         // 파싱 불가능한 라인 무시
       }
+
+      currentEvent = '';
     }
   }
 
