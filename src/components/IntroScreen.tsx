@@ -12,12 +12,12 @@ export default function IntroScreen({ onComplete }: IntroScreenProps) {
   >('title');
 
   useEffect(() => {
-    const subtitleTimer = setTimeout(() => setPhase('subtitle'), 800);
-    const fadeTimer = setTimeout(() => setPhase('fading'), 1800);
+    const subtitleTimer = setTimeout(() => setPhase('subtitle'), 1000);
+    const fadeTimer = setTimeout(() => setPhase('fading'), 3500);
     const doneTimer = setTimeout(() => {
       setPhase('done');
       onComplete();
-    }, 3300);
+    }, 5000);
 
     return () => {
       clearTimeout(subtitleTimer);
