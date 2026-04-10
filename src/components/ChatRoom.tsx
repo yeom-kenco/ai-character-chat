@@ -7,7 +7,10 @@ import ChatMessage from './ChatMessage';
 import ChatInput from './ChatInput';
 import ErrorMessage from './ErrorMessage';
 import { streamChat } from '@/lib/sse';
+import { splitIntoMessages } from '@/lib/splitMessages';
 import type { Message } from '@/types/chat';
+
+const MESSAGE_SPLIT_DELAY = 800;
 
 interface ChatRoomProps {
   characterId: string;
@@ -36,6 +39,7 @@ export default function ChatRoom({
   const isUserScrolledUpRef = useRef(false);
   const abortControllerRef = useRef<AbortController | null>(null);
   const lastUserContentRef = useRef<string>('');
+  const splitTimeoutsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   const scrollToBottom = useCallback(() => {
     if (!isUserScrolledUpRef.current) {
@@ -47,9 +51,15 @@ export default function ChatRoom({
     scrollToBottom();
   }, [messages, scrollToBottom]);
 
+  const clearSplitTimeouts = () => {
+    splitTimeoutsRef.current.forEach(clearTimeout);
+    splitTimeoutsRef.current = [];
+  };
+
   useEffect(() => {
     return () => {
       abortControllerRef.current?.abort();
+      clearSplitTimeouts();
     };
   }, []);
 
@@ -63,6 +73,7 @@ export default function ChatRoom({
 
   const handleNewChat = () => {
     abortControllerRef.current?.abort();
+    clearSplitTimeouts();
     setMessages(initialMessages);
     setSummary(undefined);
     setError(null);
@@ -77,6 +88,7 @@ export default function ChatRoom({
 
   const handleSend = async (content: string) => {
     lastUserContentRef.current = content;
+    clearSplitTimeouts();
     setError(null);
 
     const userMessage: Message = {
@@ -120,13 +132,61 @@ export default function ChatRoom({
             return updated;
           });
         },
-        onDone: () => {},
+        onDone: () => {
+          setMessages((prev) => {
+            const lastMsg = prev[prev.length - 1];
+            if (lastMsg.role !== 'assistant' || !lastMsg.content) return prev;
+
+            const chunks = splitIntoMessages(lastMsg.content);
+            if (chunks.length <= 1) return prev;
+
+            const withoutLast = prev.slice(0, -1);
+            const firstChunk: Message = {
+              ...lastMsg,
+              content: chunks[0],
+            };
+
+            const splitMessages: Message[] = chunks.slice(1).map((chunk, i) => ({
+              id: `${lastMsg.id}-split-${i}`,
+              role: 'assistant' as const,
+              content: '',
+            }));
+
+            const result = [...withoutLast, firstChunk, ...splitMessages];
+
+            // 시간차로 분할 메시지 내용을 채움
+            chunks.slice(1).forEach((chunk, i) => {
+              const timeoutId = setTimeout(() => {
+                setMessages((current) =>
+                  current.map((m) =>
+                    m.id === `${lastMsg.id}-split-${i}`
+                      ? { ...m, content: chunk }
+                      : m,
+                  ),
+                );
+              }, MESSAGE_SPLIT_DELAY * (i + 1));
+              splitTimeoutsRef.current.push(timeoutId);
+            });
+
+            return result;
+          });
+        },
         onError: (errorMsg) => {
           setError(errorMsg);
           setMessages((prev) => prev.slice(0, -2));
         },
         onSummary: (newSummary) => {
           setSummary(newSummary);
+        },
+        onRetry: () => {
+          setMessages((prev) => {
+            const updated = [...prev];
+            const last = updated[updated.length - 1];
+            if (last.role === 'assistant') {
+              updated[updated.length - 1] = { ...last, content: '' };
+            }
+            return updated;
+          });
         },
       });
     } catch (err) {
