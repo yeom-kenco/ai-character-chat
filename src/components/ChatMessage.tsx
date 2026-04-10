@@ -14,6 +14,16 @@ interface ChatMessageProps {
   characterName?: string;
   characterImage?: StaticImageData;
   isStreaming?: boolean;
+  timestamp?: number;
+}
+
+function formatTime(ts: number): string {
+  const date = new Date(ts);
+  return date.toLocaleTimeString('ko-KR', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
+  });
 }
 
 function useBubbleHeight(content: string, bubbleWidth: number): number {
@@ -35,6 +45,7 @@ export default function ChatMessage({
   characterName,
   characterImage,
   isStreaming = false,
+  timestamp,
 }: ChatMessageProps) {
   const [bubbleWidth, setBubbleWidth] = useState(0);
   const bubbleRef = useCallback((node: HTMLDivElement | null) => {
@@ -64,7 +75,7 @@ export default function ChatMessage({
 
   if (role === 'user') {
     return (
-      <div className="flex justify-end">
+      <div className="flex flex-col items-end gap-1">
         <div
           ref={setBothRefs}
           className="max-w-[75%] rounded-2xl rounded-br-sm bg-zinc-900 px-4 py-3 text-sm text-white dark:bg-zinc-100 dark:text-zinc-900"
@@ -72,6 +83,11 @@ export default function ChatMessage({
         >
           <p className="whitespace-pre-wrap">{content}</p>
         </div>
+        {timestamp && (
+          <span className="text-[10px] text-zinc-400 dark:text-zinc-500">
+            {formatTime(timestamp)}
+          </span>
+        )}
       </div>
     );
   }
@@ -106,6 +122,11 @@ export default function ChatMessage({
             <TypingIndicator />
           ) : null}
         </div>
+        {timestamp && content && (
+          <span className="mt-1 text-[10px] text-zinc-400 dark:text-zinc-500">
+            {formatTime(timestamp)}
+          </span>
+        )}
       </div>
     </div>
   );

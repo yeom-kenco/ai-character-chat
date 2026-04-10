@@ -30,7 +30,7 @@ export default function ChatRoom({
   greeting,
 }: ChatRoomProps) {
   const initialMessages: Message[] = [
-    { id: 'greeting', role: 'assistant', content: greeting },
+    { id: 'greeting', role: 'assistant', content: greeting, timestamp: Date.now() },
   ];
 
   const [messages, setMessages] = useState<Message[]>(initialMessages);
@@ -95,16 +95,20 @@ export default function ChatRoom({
     clearSplitTimeouts();
     setError(null);
 
+    const now = Date.now();
+
     const userMessage: Message = {
-      id: `user-${Date.now()}`,
+      id: `user-${now}`,
       role: 'user',
       content,
+      timestamp: now,
     };
 
     const assistantMessage: Message = {
-      id: `assistant-${Date.now()}`,
+      id: `assistant-${now}`,
       role: 'assistant',
       content: '',
+      timestamp: now,
     };
 
     setMessages((prev) => [...prev, userMessage, assistantMessage]);
@@ -154,6 +158,7 @@ export default function ChatRoom({
               id: `${lastMsg.id}-split-${i}`,
               role: 'assistant' as const,
               content: '',
+              timestamp: lastMsg.timestamp,
             }));
 
             const result = [...withoutLast, firstChunk, ...splitMessages];
@@ -274,6 +279,7 @@ export default function ChatRoom({
               key={message.id}
               role={message.role}
               content={message.content}
+              timestamp={message.timestamp}
               characterName={
                 message.role === 'assistant' ? characterName : undefined
               }
