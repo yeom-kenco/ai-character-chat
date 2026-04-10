@@ -6,6 +6,7 @@ interface StreamChatOptions {
   onDone: () => void;
   onError: (error: string) => void;
   onSummary?: (summary: string) => void;
+  onRetry?: () => void;
   signal?: AbortSignal;
 }
 
@@ -17,6 +18,7 @@ export async function streamChat({
   onDone,
   onError,
   onSummary,
+  onRetry,
   signal,
 }: StreamChatOptions): Promise<void> {
   const response = await fetch('/api/chat', {
@@ -85,6 +87,12 @@ export async function streamChat({
           if (typeof parsed.summary === 'string') {
             onSummary?.(parsed.summary);
           }
+          currentEvent = '';
+          continue;
+        }
+
+        if (currentEvent === 'retry') {
+          onRetry?.();
           currentEvent = '';
           continue;
         }

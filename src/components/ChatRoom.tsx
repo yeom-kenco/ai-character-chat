@@ -168,6 +168,16 @@ export default function ChatRoom({
         onSummary: (newSummary) => {
           setSummary(newSummary);
         },
+        onRetry: () => {
+          setMessages((prev) => {
+            const updated = [...prev];
+            const last = updated[updated.length - 1];
+            if (last.role === 'assistant') {
+              updated[updated.length - 1] = { ...last, content: '' };
+            }
+            return updated;
+          });
+        },
       });
     } catch (err) {
       if (err instanceof Error && err.name === 'AbortError') {
