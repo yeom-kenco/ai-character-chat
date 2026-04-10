@@ -1,5 +1,6 @@
 import { characters } from '@/data/characters';
 import CharacterSelectGrid from '@/components/CharacterSelectGrid';
+import SnowBackground from '@/components/GradientBackground';
 import lunaImg from '@/img/luna.png';
 import kaiImg from '@/img/kai.png';
 import miruImg from '@/img/miru.png';
@@ -26,14 +27,17 @@ export default function Home() {
   );
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-5xl flex-col items-center px-4 py-16">
-      <h1 className="mb-2 text-3xl font-bold text-zinc-900 dark:text-zinc-100">
-        AI 캐릭터 채팅
-      </h1>
-      <p className="mb-12 text-zinc-500 dark:text-zinc-400">
-        대화하고 싶은 캐릭터를 선택하세요
-      </p>
-      <CharacterSelectGrid characters={characterList} />
-    </main>
+    <>
+      <SnowBackground />
+      <main className="relative mx-auto flex min-h-screen max-w-5xl flex-col items-center px-4 py-16">
+        <h1 className="text-glow mb-2 text-4xl font-bold tracking-tight">
+          페르소나
+        </h1>
+        <p className="text-glow-subtle mb-12 text-sm">
+          오늘은 누구와 대화하러 갈까요?
+        </p>
+        <CharacterSelectGrid characters={characterList} />
+      </main>
+    </>
   );
 }
