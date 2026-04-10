@@ -14,6 +14,13 @@ interface ChatRequest {
   summary?: string;
 }
 
+const MAX_SUMMARY_LENGTH = 2000;
+
+function sanitizeSummary(summary: unknown): string | undefined {
+  if (typeof summary !== 'string' || !summary.trim()) return undefined;
+  return summary.slice(0, MAX_SUMMARY_LENGTH);
+}
+
 export async function POST(request: NextRequest) {
   let body: ChatRequest;
 
@@ -26,7 +33,8 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const { characterId, messages, summary } = body;
+  const { characterId, messages, summary: rawSummary } = body;
+  const summary = sanitizeSummary(rawSummary);
 
   if (!characterId || !Array.isArray(messages) || messages.length === 0) {
     return NextResponse.json(
