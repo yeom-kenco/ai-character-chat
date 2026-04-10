@@ -34,6 +34,7 @@ export default function ChatRoom({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const isUserScrolledUpRef = useRef(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const scrollToBottom = useCallback(() => {
     if (!isUserScrolledUpRef.current) {
@@ -73,12 +74,17 @@ export default function ChatRoom({
     isUserScrolledUpRef.current = false;
 
     const apiMessages = [...messages, userMessage]
-      .filter((m) => m.id !== 'greeting' || m.role === 'assistant')
+      .filter((m) => m.id !== 'greeting')
       .map(({ role, content: c }) => ({ role, content: c }));
+
+    abortControllerRef.current?.abort();
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
 
     await streamChat({
       characterId,
       messages: apiMessages,
+      signal: controller.signal,
       onToken: (token) => {
         setMessages((prev) => {
           const updated = [...prev];
