@@ -103,7 +103,8 @@ describe('generateSummary', () => {
 
     await generateSummary(makeMessages(3), '기존 요약');
 
-    const callArgs = fakeClient.chat.completions.create.mock.calls[0][0];
+    const mockCreate = fakeClient.chat.completions.create as ReturnType<typeof vi.fn>;
+    const callArgs = mockCreate.mock.calls[0][0] as { messages: { content: string }[] };
     const prompt = callArgs.messages[0].content;
     expect(prompt).toContain('기존 대화 요약');
     expect(prompt).toContain('기존 요약');
