@@ -39,6 +39,7 @@ export default function ChatRoom({
   const isUserScrolledUpRef = useRef(false);
   const abortControllerRef = useRef<AbortController | null>(null);
   const lastUserContentRef = useRef<string>('');
+  const splitTimeoutsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   const scrollToBottom = useCallback(() => {
     if (!isUserScrolledUpRef.current) {
@@ -50,9 +51,15 @@ export default function ChatRoom({
     scrollToBottom();
   }, [messages, scrollToBottom]);
 
+  const clearSplitTimeouts = () => {
+    splitTimeoutsRef.current.forEach(clearTimeout);
+    splitTimeoutsRef.current = [];
+  };
+
   useEffect(() => {
     return () => {
       abortControllerRef.current?.abort();
+      clearSplitTimeouts();
     };
   }, []);
 
@@ -66,6 +73,7 @@ export default function ChatRoom({
 
   const handleNewChat = () => {
     abortControllerRef.current?.abort();
+    clearSplitTimeouts();
     setMessages(initialMessages);
     setSummary(undefined);
     setError(null);
@@ -80,6 +88,7 @@ export default function ChatRoom({
 
   const handleSend = async (content: string) => {
     lastUserContentRef.current = content;
+    clearSplitTimeouts();
     setError(null);
 
     const userMessage: Message = {
@@ -147,7 +156,7 @@ export default function ChatRoom({
 
             // 시간차로 분할 메시지 내용을 채움
             chunks.slice(1).forEach((chunk, i) => {
-              setTimeout(() => {
+              const timeoutId = setTimeout(() => {
                 setMessages((current) =>
                   current.map((m) =>
                     m.id === `${lastMsg.id}-split-${i}`
@@ -156,6 +165,7 @@ export default function ChatRoom({
                   ),
                 );
               }, MESSAGE_SPLIT_DELAY * (i + 1));
+              splitTimeoutsRef.current.push(timeoutId);
             });
 
             return result;
