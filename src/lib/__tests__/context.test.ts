@@ -60,6 +60,29 @@ describe('buildContextMessages', () => {
     expect(result.newSummary).toBeUndefined();
   });
 
+  it('returns messages unchanged at exact threshold (20 messages)', async () => {
+    const messages = makeMessages(20);
+
+    const result = await buildContextMessages(messages);
+
+    expect(result.messages).toEqual(messages);
+    expect(result.newSummary).toBeUndefined();
+  });
+
+  it('triggers summarization at threshold + 1 (21 messages)', async () => {
+    const fakeSummary = '경계값 요약';
+    const fakeClient = makeFakeClient(fakeSummary);
+    mockedGetAnthropicClient.mockReturnValue(fakeClient);
+
+    const messages = makeMessages(21);
+
+    const result = await buildContextMessages(messages);
+
+    expect(fakeClient.messages.create).toHaveBeenCalledOnce();
+    expect(result.newSummary).toBe(fakeSummary);
+    expect(result.messages.slice(2)).toEqual(messages.slice(-10));
+  });
+
   it('summarizes old messages and returns summary pair + last 10 when count > 20', async () => {
     const fakeSummary = '대화 요약 결과입니다.';
     const fakeClient = makeFakeClient(fakeSummary);
