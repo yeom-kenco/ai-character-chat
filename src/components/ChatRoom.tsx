@@ -123,7 +123,7 @@ export default function ChatRoom({
         onDone: () => {},
         onError: (errorMsg) => {
           setError(errorMsg);
-          setMessages((prev) => prev.slice(0, -1));
+          setMessages((prev) => prev.slice(0, -2));
         },
         onSummary: (newSummary) => {
           setSummary(newSummary);
@@ -136,7 +136,7 @@ export default function ChatRoom({
         const message =
           err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.';
         setError(message);
-        setMessages((prev) => prev.slice(0, -1));
+        setMessages((prev) => prev.slice(0, -2));
       }
     } finally {
       setIsStreaming(false);
