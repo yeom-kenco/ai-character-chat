@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 vi.mock('@/lib/gemini', () => ({
   getGeminiClient: vi.fn(),
+  GEMINI_MODEL: 'gemini-2.5-flash',
 }));
 
 import { buildContextMessages, generateSummary } from '../context';
@@ -132,7 +133,7 @@ describe('generateSummary', () => {
     await generateSummary(messages, '기존 요약');
 
     const callArgs = fakeClient.models.generateContent.mock.calls[0][0];
-    const promptContent = callArgs.contents as string;
+    const promptContent = String(callArgs.contents);
     expect(promptContent).toContain('기존 대화 요약');
     expect(promptContent).toContain('기존 요약');
   });
