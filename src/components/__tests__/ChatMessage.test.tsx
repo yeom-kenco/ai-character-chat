@@ -23,7 +23,7 @@ describe('ChatMessage', () => {
     render(<ChatMessage role="user" content="Hello there!" />);
 
     expect(screen.getByText('Hello there!')).toBeInTheDocument();
-    expect(screen.queryByText(/characterName/i)).not.toBeInTheDocument();
+    expect(screen.queryByText('Luna')).not.toBeInTheDocument();
 
     const wrapper = screen.getByText('Hello there!').closest('div[class*="justify-end"]');
     expect(wrapper).toBeInTheDocument();
