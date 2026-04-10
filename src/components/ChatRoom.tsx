@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { StaticImageData } from 'next/image';
+import Image, { StaticImageData } from 'next/image';
 import Link from 'next/link';
 import ChatMessage from './ChatMessage';
 import ChatInput from './ChatInput';
@@ -15,14 +15,18 @@ const MESSAGE_SPLIT_DELAY = 800;
 interface ChatRoomProps {
   characterId: string;
   characterName: string;
+  characterDescription: string;
   characterImage: StaticImageData;
+  accentColor: string;
   greeting: string;
 }
 
 export default function ChatRoom({
   characterId,
   characterName,
+  characterDescription,
   characterImage,
+  accentColor,
   greeting,
 }: ChatRoomProps) {
   const initialMessages: Message[] = [
@@ -205,37 +209,54 @@ export default function ChatRoom({
 
   return (
     <div className="flex h-dvh flex-col">
-      <header className="flex items-center gap-3 border-b border-zinc-200 px-4 py-3 dark:border-zinc-700">
-        <Link
-          href="/"
-          aria-label="뒤로가기"
-          className="rounded-lg p-1 text-zinc-500 transition-colors hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+      <header>
+        <div className="flex items-center gap-3 px-4 py-3">
+          <Link
+            href="/"
+            aria-label="뒤로가기"
+            className="rounded-lg p-1 text-zinc-500 transition-colors hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
           >
-            <polyline points="15 18 9 12 15 6" />
-          </svg>
-        </Link>
-        <h1 className="flex-1 text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-          {characterName}
-        </h1>
-        <button
-          type="button"
-          onClick={handleNewChat}
-          disabled={isStreaming}
-          className="rounded-lg px-3 py-1 text-xs font-medium text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 disabled:opacity-30 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
-        >
-          새 대화
-        </button>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
+          </Link>
+          <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full">
+            <Image
+              src={characterImage}
+              alt={characterName}
+              fill
+              className="object-cover object-top"
+              sizes="36px"
+            />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h1 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+              {characterName}
+            </h1>
+            <p className="truncate text-xs text-zinc-500 dark:text-zinc-400">
+              {characterDescription}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={handleNewChat}
+            disabled={isStreaming}
+            className="rounded-lg px-3 py-1 text-xs font-medium text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 disabled:opacity-30 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
+          >
+            새 대화
+          </button>
+        </div>
+        <div className="h-0.5" style={{ backgroundColor: accentColor }} />
       </header>
 
       <main
