@@ -8,10 +8,10 @@ import {
 const EXPECTED_IDS = ['luna', 'kai', 'miru', 'zero'];
 
 const EXPECTED_SPECS: Record<string, { temperature: number; maxTokens: number }> = {
-  luna: { temperature: 0.9, maxTokens: 300 },
-  kai: { temperature: 0.6, maxTokens: 150 },
-  miru: { temperature: 0.8, maxTokens: 250 },
-  zero: { temperature: 0.5, maxTokens: 120 },
+  luna: { temperature: 0.9, maxTokens: 500 },
+  kai: { temperature: 0.6, maxTokens: 300 },
+  miru: { temperature: 0.8, maxTokens: 500 },
+  zero: { temperature: 0.5, maxTokens: 250 },
 };
 
 describe('characters array', () => {
