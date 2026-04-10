@@ -1,3 +1,7 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+
 const SNOWFLAKE_COUNT = 50;
 
 function generateSnowflakes() {
@@ -30,9 +34,16 @@ function generateSnowflakes() {
   });
 }
 
-const snowflakes = generateSnowflakes();
-
 export default function SnowBackground() {
+  const [mounted, setMounted] = useState(false);
+  const [snowflakes] = useState(() => generateSnowflakes());
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return <div className="snow-bg" />;
+
   return (
     <div className="snow-bg">
       {snowflakes}
