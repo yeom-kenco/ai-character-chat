@@ -80,7 +80,9 @@ export async function streamChat({
         }
 
         if (currentEvent === 'summary') {
-          onSummary?.(parsed.summary);
+          if (typeof parsed.summary === 'string') {
+            onSummary?.(parsed.summary);
+          }
           currentEvent = '';
           continue;
         }
