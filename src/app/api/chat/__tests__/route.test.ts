@@ -28,6 +28,10 @@ function createInvalidJsonRequest() {
 }
 
 describe('POST /api/chat', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it('returns 400 for invalid JSON body', async () => {
     const response = await POST(createInvalidJsonRequest());
     const data = await response.json();
