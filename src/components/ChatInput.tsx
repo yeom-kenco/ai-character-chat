@@ -39,7 +39,7 @@ export default function ChatInput({ onSend, disabled }: ChatInputProps) {
   };
 
   return (
-    <div className="border-t border-zinc-200 bg-white px-4 py-3 dark:border-zinc-700 dark:bg-zinc-900">
+    <div className="border-t border-white/10 bg-[#0a0f1a] px-4 py-3">
       <div className="mx-auto flex max-w-3xl items-end gap-2">
         <textarea
           ref={textareaRef}
@@ -49,14 +49,14 @@ export default function ChatInput({ onSend, disabled }: ChatInputProps) {
           disabled={disabled}
           placeholder="메시지를 입력하세요..."
           rows={1}
-          className="flex-1 resize-none rounded-xl border border-zinc-300 bg-zinc-50 px-4 py-2.5 text-sm outline-none transition-colors placeholder:text-zinc-400 focus:border-zinc-500 disabled:opacity-50 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder:text-zinc-500 dark:focus:border-zinc-400"
+          className="flex-1 resize-none rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white/90 outline-none transition-colors placeholder:text-white/30 focus:border-white/25 disabled:opacity-50"
         />
         <button
           type="button"
           onClick={handleSubmit}
           disabled={disabled || !value.trim()}
           aria-label="메시지 전송"
-          className="shrink-0 rounded-xl bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-zinc-700 disabled:opacity-30 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
+          className="shrink-0 rounded-xl bg-indigo-600/80 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-indigo-500/80 disabled:opacity-30"
         >
           전송
         </button>

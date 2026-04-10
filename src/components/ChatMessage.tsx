@@ -80,13 +80,13 @@ export default function ChatMessage({
       <div className="flex flex-col items-end gap-1">
         <div
           ref={setBothRefs}
-          className="max-w-[75%] rounded-2xl rounded-br-sm bg-zinc-900 px-4 py-3 text-sm text-white dark:bg-zinc-100 dark:text-zinc-900"
+          className="max-w-[75%] rounded-2xl rounded-br-sm bg-indigo-600/80 px-4 py-3 text-sm text-white"
           style={preHeight > 0 ? { minHeight: preHeight } : undefined}
         >
           <p className="whitespace-pre-wrap">{content}</p>
         </div>
         {timestamp && (
-          <span className="text-[10px] text-zinc-400 dark:text-zinc-500">
+          <span className="text-[10px] text-white/30">
             {formatTime(timestamp)}
           </span>
         )}
@@ -109,13 +109,13 @@ export default function ChatMessage({
       )}
       <div className="max-w-[75%]">
         {characterName && (
-          <p className="mb-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
+          <p className="mb-1 text-xs font-medium text-white/40">
             {characterName}
           </p>
         )}
         <div
           ref={setBothRefs}
-          className="rounded-2xl rounded-tl-sm bg-zinc-100 px-4 py-3 text-sm text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100"
+          className="rounded-2xl rounded-tl-sm bg-white/10 px-4 py-3 text-sm text-white/90"
           style={preHeight > 0 ? { minHeight: preHeight } : undefined}
         >
           {content ? (
@@ -126,7 +126,7 @@ export default function ChatMessage({
         </div>
         {timestamp && content && (
           <div className="mt-1 flex items-center gap-2">
-            <span className="text-[10px] text-zinc-400 dark:text-zinc-500">
+            <span className="text-[10px] text-white/30">
               {formatTime(timestamp)}
             </span>
             {onRegenerate && (
@@ -134,7 +134,7 @@ export default function ChatMessage({
                 type="button"
                 onClick={onRegenerate}
                 aria-label="응답 재생성"
-                className="text-zinc-400 transition-colors hover:text-zinc-600 dark:text-zinc-500 dark:hover:text-zinc-300"
+                className="text-white/30 transition-colors hover:text-white/60"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -164,9 +164,9 @@ export default function ChatMessage({
 function TypingIndicator() {
   return (
     <div className="flex gap-1" aria-label="응답 작성 중">
-      <span className="h-2 w-2 animate-bounce rounded-full bg-zinc-400 [animation-delay:0ms]" />
-      <span className="h-2 w-2 animate-bounce rounded-full bg-zinc-400 [animation-delay:150ms]" />
-      <span className="h-2 w-2 animate-bounce rounded-full bg-zinc-400 [animation-delay:300ms]" />
+      <span className="h-2 w-2 animate-bounce rounded-full bg-white/40 [animation-delay:0ms]" />
+      <span className="h-2 w-2 animate-bounce rounded-full bg-white/40 [animation-delay:150ms]" />
+      <span className="h-2 w-2 animate-bounce rounded-full bg-white/40 [animation-delay:300ms]" />
     </div>
   );
 }

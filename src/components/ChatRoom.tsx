@@ -213,13 +213,13 @@ export default function ChatRoom({
   };
 
   return (
-    <div className="flex h-dvh flex-col">
+    <div className="flex h-dvh flex-col bg-[#0a0f1a]">
       <header>
         <div className="flex items-center gap-3 px-4 py-3">
           <Link
             href="/"
             aria-label="뒤로가기"
-            className="rounded-lg p-1 text-zinc-500 transition-colors hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+            className="rounded-lg p-1 text-white/50 transition-colors hover:text-white"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -245,10 +245,10 @@ export default function ChatRoom({
             />
           </div>
           <div className="flex-1 min-w-0">
-            <h1 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+            <h1 className="text-sm font-semibold text-white/90">
               {characterName}
             </h1>
-            <p className="truncate text-xs text-zinc-500 dark:text-zinc-400">
+            <p className="truncate text-xs text-white/40">
               {characterDescription}
             </p>
           </div>
@@ -256,7 +256,7 @@ export default function ChatRoom({
             type="button"
             onClick={handleNewChat}
             disabled={isStreaming}
-            className="rounded-lg px-3 py-1 text-xs font-medium text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 disabled:opacity-30 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
+            className="rounded-lg px-3 py-1 text-xs font-medium text-white/40 transition-colors hover:bg-white/10 hover:text-white disabled:opacity-30"
           >
             새 대화
           </button>
