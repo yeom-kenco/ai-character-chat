@@ -1,4 +1,4 @@
-import { getGeminiClient, GEMINI_MODEL } from './gemini';
+import { getOpenAIClient, OPENAI_MODEL } from './openai';
 
 interface SimpleMessage {
   role: 'user' | 'assistant';
@@ -12,7 +12,7 @@ export async function generateSummary(
   messages: SimpleMessage[],
   existingSummary?: string,
 ): Promise<string> {
-  const client = getGeminiClient();
+  const client = getOpenAIClient();
 
   const conversationText = messages
     .map((m) => `${m.role === 'user' ? '사용자' : 'AI'}: ${m.content}`)
@@ -22,12 +22,13 @@ export async function generateSummary(
     ? `기존 대화 요약:\n${existingSummary}\n\n새로운 대화 내용:\n${conversationText}\n\n위 기존 요약과 새 대화를 합쳐서 하나의 요약으로 정리해주세요. 사용자의 이름, 취향, 주요 대화 맥락을 반드시 포함하세요. 3~5문장으로 간결하게 작성하세요.`
     : `다음 대화를 요약해주세요. 사용자의 이름, 취향, 주요 대화 맥락을 반드시 포함하세요. 3~5문장으로 간결하게 작성하세요.\n\n${conversationText}`;
 
-  const response = await client.models.generateContent({
-    model: GEMINI_MODEL,
-    contents: prompt,
+  const response = await client.chat.completions.create({
+    model: OPENAI_MODEL,
+    messages: [{ role: 'user', content: prompt }],
+    max_tokens: 300,
   });
 
-  return response.text ?? '';
+  return response.choices[0]?.message?.content ?? '';
 }
 
 export interface ContextResult {

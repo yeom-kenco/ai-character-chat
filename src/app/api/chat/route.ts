@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getGeminiClient, GEMINI_MODEL } from '@/lib/gemini';
+import { getOpenAIClient, OPENAI_MODEL } from '@/lib/openai';
 import { getCharacterById } from '@/data/characters';
 import { buildContextMessages } from '@/lib/context';
 
@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
 
   let client;
   try {
-    client = getGeminiClient();
+    client = getOpenAIClient();
   } catch {
     return NextResponse.json(
       { error: 'API 키가 설정되지 않았습니다.' },
@@ -85,10 +85,13 @@ export async function POST(request: NextRequest) {
           );
         }
 
-        const geminiMessages = contextMessages.map((m) => ({
-          role: m.role === 'assistant' ? ('model' as const) : ('user' as const),
-          parts: [{ text: m.content }],
-        }));
+        const openaiMessages = [
+          { role: 'system' as const, content: character.systemPrompt },
+          ...contextMessages.map((m) => ({
+            role: m.role as 'user' | 'assistant',
+            content: m.content,
+          })),
+        ];
 
         const MAX_RETRIES = 3;
         let lastError: unknown;
@@ -97,18 +100,16 @@ export async function POST(request: NextRequest) {
           let receivedTokens = false;
 
           try {
-            const response = await client.models.generateContentStream({
-              model: GEMINI_MODEL,
-              config: {
-                systemInstruction: character.systemPrompt,
-                temperature: character.temperature,
-                maxOutputTokens: character.maxTokens,
-              },
-              contents: geminiMessages,
+            const response = await client.chat.completions.create({
+              model: OPENAI_MODEL,
+              messages: openaiMessages,
+              max_tokens: character.maxTokens,
+              temperature: character.temperature,
+              stream: true,
             });
 
             for await (const chunk of response) {
-              const text = chunk.text;
+              const text = chunk.choices[0]?.delta?.content;
               if (text) {
                 receivedTokens = true;
                 const data = JSON.stringify({ content: text });
@@ -122,10 +123,10 @@ export async function POST(request: NextRequest) {
             lastError = err;
             const isRetryable =
               err instanceof Error &&
-              (err.message.includes('503') ||
-                err.message.includes('UNAVAILABLE') ||
-                err.message.includes('429') ||
-                err.message.includes('high demand'));
+              (err.message.includes('429') ||
+                err.message.includes('500') ||
+                err.message.includes('503') ||
+                err.message.includes('Rate limit'));
 
             if (!isRetryable || attempt === MAX_RETRIES - 1) break;
 
