@@ -1,6 +1,20 @@
-import { describe, it, expect, vi } from 'vitest';
+import { beforeAll, describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
+
+beforeAll(() => {
+  global.ResizeObserver = class {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  } as unknown as typeof ResizeObserver;
+});
+
+vi.mock('@chenglou/pretext', () => ({
+  prepare: () => ({}),
+  layout: () => ({ height: 0, lineCount: 0 }),
+}));
+
 import ChatMessage from '../ChatMessage';
 
 vi.mock('next/image', () => ({
