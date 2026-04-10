@@ -1,4 +1,4 @@
-const SENTENCE_SPLIT_REGEX = /(?<=[.!?~]\s)|(?<=ㅋ{2,}\s)|(?<=ㅎ{2,}\s)|(?<=요[.!?~]?\s)|(?<=다[.!?~]?\s)/;
+const SENTENCE_SPLIT_REGEX = /(?<=[.!?~])(?=\s|$)|(?<=ㅋ{2,})(?=\s|$)|(?<=ㅎ{2,})(?=\s|$)|(?<=요[.!?~]?)(?=\s|$)|(?<=다[.!?~]?)(?=\s|$)/;
 const MIN_SENTENCES_TO_SPLIT = 3;
 
 export function splitIntoMessages(text: string): string[] {
