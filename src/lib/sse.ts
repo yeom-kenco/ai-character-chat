@@ -4,6 +4,7 @@ interface StreamChatOptions {
   onToken: (token: string) => void;
   onDone: () => void;
   onError: (error: string) => void;
+  signal?: AbortSignal;
 }
 
 export async function streamChat({
@@ -12,16 +13,22 @@ export async function streamChat({
   onToken,
   onDone,
   onError,
+  signal,
 }: StreamChatOptions): Promise<void> {
   const response = await fetch('/api/chat', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ characterId, messages }),
+    signal,
   });
 
   if (!response.ok) {
-    const data = await response.json();
-    onError(data.error ?? `HTTP ${response.status}`);
+    try {
+      const data = await response.json();
+      onError(data.error ?? `HTTP ${response.status}`);
+    } catch {
+      onError(`HTTP ${response.status}`);
+    }
     return;
   }
 
