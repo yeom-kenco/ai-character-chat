@@ -5,6 +5,7 @@ import { StaticImageData } from 'next/image';
 import Link from 'next/link';
 import ChatMessage from './ChatMessage';
 import ChatInput from './ChatInput';
+import ErrorMessage from './ErrorMessage';
 import { streamChat } from '@/lib/sse';
 import type { Message } from '@/types/chat';
 
@@ -34,6 +35,7 @@ export default function ChatRoom({
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const isUserScrolledUpRef = useRef(false);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const lastUserContentRef = useRef<string>('');
 
   const scrollToBottom = useCallback(() => {
     if (!isUserScrolledUpRef.current) {
@@ -67,7 +69,14 @@ export default function ChatRoom({
     setIsStreaming(false);
   };
 
+  const handleRetry = () => {
+    if (lastUserContentRef.current) {
+      handleSend(lastUserContentRef.current);
+    }
+  };
+
   const handleSend = async (content: string) => {
+    lastUserContentRef.current = content;
     setError(null);
 
     const userMessage: Message = {
@@ -201,11 +210,7 @@ export default function ChatRoom({
         </div>
       </div>
 
-      {error && (
-        <div className="border-t border-red-200 bg-red-50 px-4 py-2 text-center text-sm text-red-600 dark:border-red-900 dark:bg-red-950 dark:text-red-400">
-          {error}
-        </div>
-      )}
+      {error && <ErrorMessage message={error} onRetry={handleRetry} />}
 
       <ChatInput onSend={handleSend} disabled={isStreaming} />
     </div>
