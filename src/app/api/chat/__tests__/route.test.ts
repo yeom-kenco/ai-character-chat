@@ -2,14 +2,20 @@
 import { afterEach, describe, it, expect, vi } from 'vitest';
 import { NextRequest } from 'next/server';
 
-vi.mock('@/lib/anthropic', () => ({
-  getAnthropicClient: vi.fn(),
+vi.mock('@/lib/gemini', () => ({
+  getGeminiClient: vi.fn(),
+}));
+
+vi.mock('@/lib/context', () => ({
+  buildContextMessages: vi.fn(async (messages: unknown[]) => ({
+    messages,
+  })),
 }));
 
 import { POST } from '../route';
-import { getAnthropicClient } from '@/lib/anthropic';
+import { getGeminiClient } from '@/lib/gemini';
 
-const mockedGetAnthropicClient = vi.mocked(getAnthropicClient);
+const mockedGetGeminiClient = vi.mocked(getGeminiClient);
 
 function createRequest(body: unknown) {
   return new NextRequest('http://localhost/api/chat', {
@@ -83,9 +89,9 @@ describe('POST /api/chat', () => {
     expect(data.error).toBe('존재하지 않는 캐릭터입니다: nonexistent');
   });
 
-  it('returns 500 when ANTHROPIC_API_KEY is not set', async () => {
-    mockedGetAnthropicClient.mockImplementation(() => {
-      throw new Error('ANTHROPIC_API_KEY 환경변수가 설정되지 않았습니다.');
+  it('returns 500 when GEMINI_API_KEY is not set', async () => {
+    mockedGetGeminiClient.mockImplementation(() => {
+      throw new Error('GEMINI_API_KEY 환경변수가 설정되지 않았습니다.');
     });
 
     const response = await POST(

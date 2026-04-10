@@ -5,6 +5,7 @@ import { StaticImageData } from 'next/image';
 import Link from 'next/link';
 import ChatMessage from './ChatMessage';
 import ChatInput from './ChatInput';
+import ErrorMessage from './ErrorMessage';
 import { streamChat } from '@/lib/sse';
 import type { Message } from '@/types/chat';
 
@@ -34,6 +35,7 @@ export default function ChatRoom({
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const isUserScrolledUpRef = useRef(false);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const lastUserContentRef = useRef<string>('');
 
   const scrollToBottom = useCallback(() => {
     if (!isUserScrolledUpRef.current) {
@@ -67,7 +69,14 @@ export default function ChatRoom({
     setIsStreaming(false);
   };
 
+  const handleRetry = () => {
+    if (lastUserContentRef.current) {
+      handleSend(lastUserContentRef.current);
+    }
+  };
+
   const handleSend = async (content: string) => {
+    lastUserContentRef.current = content;
     setError(null);
 
     const userMessage: Message = {
@@ -114,7 +123,7 @@ export default function ChatRoom({
         onDone: () => {},
         onError: (errorMsg) => {
           setError(errorMsg);
-          setMessages((prev) => prev.slice(0, -1));
+          setMessages((prev) => prev.slice(0, -2));
         },
         onSummary: (newSummary) => {
           setSummary(newSummary);
@@ -127,7 +136,7 @@ export default function ChatRoom({
         const message =
           err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.';
         setError(message);
-        setMessages((prev) => prev.slice(0, -1));
+        setMessages((prev) => prev.slice(0, -2));
       }
     } finally {
       setIsStreaming(false);
@@ -169,7 +178,7 @@ export default function ChatRoom({
         </button>
       </header>
 
-      <div
+      <main
         ref={scrollContainerRef}
         onScroll={handleScroll}
         className="flex-1 overflow-y-auto px-4 py-4"
@@ -199,13 +208,9 @@ export default function ChatRoom({
           ))}
           <div ref={messagesEndRef} />
         </div>
-      </div>
+      </main>
 
-      {error && (
-        <div className="border-t border-red-200 bg-red-50 px-4 py-2 text-center text-sm text-red-600 dark:border-red-900 dark:bg-red-950 dark:text-red-400">
-          {error}
-        </div>
-      )}
+      {error && <ErrorMessage message={error} onRetry={handleRetry} />}
 
       <ChatInput onSend={handleSend} disabled={isStreaming} />
     </div>

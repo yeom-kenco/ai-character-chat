@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getCharacterById, getCharacterIds } from '@/data/characters';
 import ChatRoom from '@/components/ChatRoom';
@@ -20,6 +21,20 @@ export function generateStaticParams() {
 
 interface ChatPageProps {
   params: Promise<{ characterId: string }>;
+}
+
+export async function generateMetadata({
+  params,
+}: ChatPageProps): Promise<Metadata> {
+  const { characterId } = await params;
+  const character = getCharacterById(characterId);
+
+  if (!character) return {};
+
+  return {
+    title: `${character.name}와 대화 — AI 캐릭터 채팅`,
+    description: character.description,
+  };
 }
 
 export default async function ChatPage({ params }: ChatPageProps) {

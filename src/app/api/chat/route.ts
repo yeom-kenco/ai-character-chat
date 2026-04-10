@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAnthropicClient } from '@/lib/anthropic';
+import { getGeminiClient, GEMINI_MODEL } from '@/lib/gemini';
 import { getCharacterById } from '@/data/characters';
 import { buildContextMessages } from '@/lib/context';
 
@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
 
   let client;
   try {
-    client = getAnthropicClient();
+    client = getGeminiClient();
   } catch {
     return NextResponse.json(
       { error: 'API 키가 설정되지 않았습니다.' },
@@ -85,23 +85,54 @@ export async function POST(request: NextRequest) {
           );
         }
 
-        const response = client.messages.stream({
-          model: 'claude-sonnet-4-20250514',
-          system: character.systemPrompt,
-          messages: contextMessages.map((m) => ({
-            role: m.role,
-            content: m.content,
-          })),
-          max_tokens: character.maxTokens,
-          temperature: character.temperature,
-        });
+        const geminiMessages = contextMessages.map((m) => ({
+          role: m.role === 'assistant' ? ('model' as const) : ('user' as const),
+          parts: [{ text: m.content }],
+        }));
 
-        response.on('text', (text) => {
-          const data = JSON.stringify({ content: text });
-          controller.enqueue(encoder.encode(`data: ${data}\n\n`));
-        });
+        const MAX_RETRIES = 3;
+        let lastError: unknown;
 
-        await response.finalMessage();
+        for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+          try {
+            const response = await client.models.generateContentStream({
+              model: GEMINI_MODEL,
+              config: {
+                systemInstruction: character.systemPrompt,
+                temperature: character.temperature,
+                maxOutputTokens: character.maxTokens,
+              },
+              contents: geminiMessages,
+            });
+
+            for await (const chunk of response) {
+              const text = chunk.text;
+              if (text) {
+                const data = JSON.stringify({ content: text });
+                controller.enqueue(encoder.encode(`data: ${data}\n\n`));
+              }
+            }
+
+            lastError = null;
+            break;
+          } catch (err) {
+            lastError = err;
+            const isRetryable =
+              err instanceof Error &&
+              (err.message.includes('503') ||
+                err.message.includes('UNAVAILABLE') ||
+                err.message.includes('429') ||
+                err.message.includes('high demand'));
+
+            if (!isRetryable || attempt === MAX_RETRIES - 1) break;
+
+            await new Promise((r) =>
+              setTimeout(r, (attempt + 1) * 2000),
+            );
+          }
+        }
+
+        if (lastError) throw lastError;
 
         controller.enqueue(encoder.encode('data: [DONE]\n\n'));
         controller.close();

@@ -14,7 +14,15 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: 'AI 캐릭터 채팅',
-  description: 'AI 캐릭터와 대화를 나누는 채팅 서비스',
+  description:
+    '고유한 성격과 말투를 가진 AI 캐릭터와 자연스러운 대화를 나눠보세요.',
+  openGraph: {
+    title: 'AI 캐릭터 채팅',
+    description:
+      '고유한 성격과 말투를 가진 AI 캐릭터와 자연스러운 대화를 나눠보세요.',
+    type: 'website',
+  },
+  robots: { index: true, follow: true },
 };
 
 export default function RootLayout({

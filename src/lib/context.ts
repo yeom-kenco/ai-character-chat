@@ -1,4 +1,4 @@
-import { getAnthropicClient } from './anthropic';
+import { getGeminiClient, GEMINI_MODEL } from './gemini';
 
 interface SimpleMessage {
   role: 'user' | 'assistant';
@@ -12,7 +12,7 @@ export async function generateSummary(
   messages: SimpleMessage[],
   existingSummary?: string,
 ): Promise<string> {
-  const client = getAnthropicClient();
+  const client = getGeminiClient();
 
   const conversationText = messages
     .map((m) => `${m.role === 'user' ? '사용자' : 'AI'}: ${m.content}`)
@@ -22,14 +22,12 @@ export async function generateSummary(
     ? `기존 대화 요약:\n${existingSummary}\n\n새로운 대화 내용:\n${conversationText}\n\n위 기존 요약과 새 대화를 합쳐서 하나의 요약으로 정리해주세요. 사용자의 이름, 취향, 주요 대화 맥락을 반드시 포함하세요. 3~5문장으로 간결하게 작성하세요.`
     : `다음 대화를 요약해주세요. 사용자의 이름, 취향, 주요 대화 맥락을 반드시 포함하세요. 3~5문장으로 간결하게 작성하세요.\n\n${conversationText}`;
 
-  const response = await client.messages.create({
-    model: 'claude-sonnet-4-20250514',
-    max_tokens: 300,
-    messages: [{ role: 'user', content: prompt }],
+  const response = await client.models.generateContent({
+    model: GEMINI_MODEL,
+    contents: prompt,
   });
 
-  const textBlock = response.content.find((block) => block.type === 'text');
-  return textBlock?.text ?? '';
+  return response.text ?? '';
 }
 
 export interface ContextResult {
@@ -77,7 +75,6 @@ export async function buildContextMessages(
     };
   }
 
-  // 요약 생성 실패 시 기존 요약 유지 + 최근 메시지만 반환
   if (existingSummary) {
     return {
       messages: [
