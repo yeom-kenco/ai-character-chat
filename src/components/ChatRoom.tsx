@@ -109,8 +109,15 @@ export default function ChatRoom({
           setMessages((prev) => prev.slice(0, -1));
         },
       });
-    } catch {
-      // AbortError 등 — 언마운트 또는 재전송 시 정상적으로 발생
+    } catch (err) {
+      if (err instanceof Error && err.name === 'AbortError') {
+        // 언마운트 또는 재전송 시 정상적으로 발생
+      } else {
+        const message =
+          err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.';
+        setError(message);
+        setMessages((prev) => prev.slice(0, -1));
+      }
     } finally {
       setIsStreaming(false);
     }
