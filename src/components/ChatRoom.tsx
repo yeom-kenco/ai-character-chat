@@ -21,15 +21,14 @@ export default function ChatRoom({
   characterImage,
   greeting,
 }: ChatRoomProps) {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: 'greeting',
-      role: 'assistant',
-      content: greeting,
-    },
-  ]);
+  const initialMessages: Message[] = [
+    { id: 'greeting', role: 'assistant', content: greeting },
+  ];
+
+  const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [isStreaming, setIsStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [summary, setSummary] = useState<string | undefined>(undefined);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -58,6 +57,14 @@ export default function ChatRoom({
 
     const { scrollTop, scrollHeight, clientHeight } = container;
     isUserScrolledUpRef.current = scrollHeight - scrollTop - clientHeight > 100;
+  };
+
+  const handleNewChat = () => {
+    abortControllerRef.current?.abort();
+    setMessages(initialMessages);
+    setSummary(undefined);
+    setError(null);
+    setIsStreaming(false);
   };
 
   const handleSend = async (content: string) => {
@@ -91,6 +98,7 @@ export default function ChatRoom({
       await streamChat({
         characterId,
         messages: apiMessages,
+        summary,
         signal: controller.signal,
         onToken: (token) => {
           setMessages((prev) => {
@@ -107,6 +115,9 @@ export default function ChatRoom({
         onError: (errorMsg) => {
           setError(errorMsg);
           setMessages((prev) => prev.slice(0, -1));
+        },
+        onSummary: (newSummary) => {
+          setSummary(newSummary);
         },
       });
     } catch (err) {
@@ -145,9 +156,17 @@ export default function ChatRoom({
             <polyline points="15 18 9 12 15 6" />
           </svg>
         </Link>
-        <h1 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+        <h1 className="flex-1 text-sm font-semibold text-zinc-900 dark:text-zinc-100">
           {characterName}
         </h1>
+        <button
+          type="button"
+          onClick={handleNewChat}
+          disabled={isStreaming}
+          className="rounded-lg px-3 py-1 text-xs font-medium text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 disabled:opacity-30 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
+        >
+          새 대화
+        </button>
       </header>
 
       <div
@@ -155,7 +174,11 @@ export default function ChatRoom({
         onScroll={handleScroll}
         className="flex-1 overflow-y-auto px-4 py-4"
       >
-        <div role="log" aria-live="polite" className="mx-auto flex max-w-3xl flex-col gap-4">
+        <div
+          role="log"
+          aria-live="polite"
+          className="mx-auto flex max-w-3xl flex-col gap-4"
+        >
           {messages.map((message) => (
             <ChatMessage
               key={message.id}

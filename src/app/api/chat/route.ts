@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAnthropicClient } from '@/lib/anthropic';
 import { getCharacterById } from '@/data/characters';
+import { buildContextMessages } from '@/lib/context';
 
 interface ChatMessage {
   role: 'user' | 'assistant';
@@ -10,6 +11,14 @@ interface ChatMessage {
 interface ChatRequest {
   characterId: string;
   messages: ChatMessage[];
+  summary?: string;
+}
+
+const MAX_SUMMARY_LENGTH = 2000;
+
+function sanitizeSummary(summary: unknown): string | undefined {
+  if (typeof summary !== 'string' || !summary.trim()) return undefined;
+  return summary.slice(0, MAX_SUMMARY_LENGTH);
 }
 
 export async function POST(request: NextRequest) {
@@ -24,7 +33,8 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const { characterId, messages } = body;
+  const { characterId, messages, summary: rawSummary } = body;
+  const summary = sanitizeSummary(rawSummary);
 
   if (!characterId || !Array.isArray(messages) || messages.length === 0) {
     return NextResponse.json(
@@ -52,15 +62,33 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  let contextMessages: ChatMessage[];
+  let newSummary: string | undefined;
+
+  try {
+    const context = await buildContextMessages(messages, summary);
+    contextMessages = context.messages;
+    newSummary = context.newSummary;
+  } catch {
+    contextMessages = messages;
+  }
+
   const encoder = new TextEncoder();
 
   const stream = new ReadableStream({
     async start(controller) {
       try {
+        if (newSummary) {
+          const summaryData = JSON.stringify({ summary: newSummary });
+          controller.enqueue(
+            encoder.encode(`event: summary\ndata: ${summaryData}\n\n`),
+          );
+        }
+
         const response = client.messages.stream({
           model: 'claude-sonnet-4-20250514',
           system: character.systemPrompt,
-          messages: messages.map((m) => ({
+          messages: contextMessages.map((m) => ({
             role: m.role,
             content: m.content,
           })),
