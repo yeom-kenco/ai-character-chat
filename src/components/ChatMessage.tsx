@@ -29,10 +29,11 @@ function formatTime(ts: number): string {
 
 function useBubbleHeight(content: string, bubbleWidth: number): number {
   return useMemo(() => {
-    if (!content || bubbleWidth <= 0) return 0;
+    const trimmed = content.trimEnd();
+    if (!trimmed || bubbleWidth <= 0) return 0;
 
     const textWidth = bubbleWidth - 32;
-    const prepared = prepare(content, PRETEXT_FONT, {
+    const prepared = prepare(trimmed, PRETEXT_FONT, {
       whiteSpace: 'pre-wrap',
     });
     const result = layout(prepared, textWidth, PRETEXT_LINE_HEIGHT);
@@ -60,8 +61,13 @@ export default function ChatMessage({
     const el = resizeRef.current;
     if (!el) return;
 
+    let lastWidth = 0;
     const observer = new ResizeObserver(([entry]) => {
-      setBubbleWidth(entry.contentRect.width + 32);
+      const newWidth = Math.round(entry.contentRect.width + 32);
+      if (newWidth !== lastWidth) {
+        lastWidth = newWidth;
+        setBubbleWidth(newWidth);
+      }
     });
     observer.observe(el);
     return () => observer.disconnect();
