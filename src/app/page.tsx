@@ -31,9 +31,9 @@ export default function Home() {
       <SnowBackground />
       <main className="relative mx-auto flex min-h-screen max-w-5xl flex-col items-center px-4 py-16">
         <h1 className="text-glow mb-2 text-4xl font-bold tracking-tight">
-          페르소나
+          Persona
         </h1>
-        <p className="text-glow-subtle mb-12 text-sm">
+        <p className="text-glow-subtle mb-12 text-lg text-center">
           오늘은 누구와 대화하러 갈까요?
         </p>
         <CharacterSelectGrid characters={characterList} />
