@@ -90,23 +90,49 @@ export async function POST(request: NextRequest) {
           parts: [{ text: m.content }],
         }));
 
-        const response = await client.models.generateContentStream({
-          model: 'gemini-2.0-flash',
-          config: {
-            systemInstruction: character.systemPrompt,
-            temperature: character.temperature,
-            maxOutputTokens: character.maxTokens,
-          },
-          contents: geminiMessages,
-        });
+        const MAX_RETRIES = 3;
+        let lastError: unknown;
 
-        for await (const chunk of response) {
-          const text = chunk.text;
-          if (text) {
-            const data = JSON.stringify({ content: text });
-            controller.enqueue(encoder.encode(`data: ${data}\n\n`));
+        for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+          try {
+            const response = await client.models.generateContentStream({
+              model: 'gemini-2.5-flash',
+              config: {
+                systemInstruction: character.systemPrompt,
+                temperature: character.temperature,
+                maxOutputTokens: character.maxTokens,
+              },
+              contents: geminiMessages,
+            });
+
+            for await (const chunk of response) {
+              const text = chunk.text;
+              if (text) {
+                const data = JSON.stringify({ content: text });
+                controller.enqueue(encoder.encode(`data: ${data}\n\n`));
+              }
+            }
+
+            lastError = null;
+            break;
+          } catch (err) {
+            lastError = err;
+            const isRetryable =
+              err instanceof Error &&
+              (err.message.includes('503') ||
+                err.message.includes('UNAVAILABLE') ||
+                err.message.includes('429') ||
+                err.message.includes('high demand'));
+
+            if (!isRetryable || attempt === MAX_RETRIES - 1) break;
+
+            await new Promise((r) =>
+              setTimeout(r, (attempt + 1) * 2000),
+            );
           }
         }
+
+        if (lastError) throw lastError;
 
         controller.enqueue(encoder.encode('data: [DONE]\n\n'));
         controller.close();
