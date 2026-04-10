@@ -1,19 +1,54 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --background: #0a0f1a;
+  --foreground: #e8eaf0;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-geist-sans), sans-serif;
+}
+
+/* 눈 내리는 배경 */
+.snow-bg {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: linear-gradient(180deg, #0a1628 0%, #111827 50%, #0a0f1a 100%);
+  z-index: -1;
+}
+
+.snowflake {
+  position: absolute;
+  top: -5vh;
+  background: white;
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: 0.8;
+}
+
+@keyframes snowfall {
+  0% {
+    transform: translate3d(var(--drift-start), 0, 0);
+  }
+  100% {
+    transform: translate3d(var(--drift-end), 110vh, 0);
+  }
+}
+
+/* 제목 글로우 효과 */
+.text-glow {
+  color: #f0f4ff;
+  text-shadow:
+    0 0 10px rgba(180, 200, 255, 0.4),
+    0 0 40px rgba(140, 160, 255, 0.2),
+    0 0 80px rgba(120, 140, 255, 0.1);
+}
+
+.text-glow-subtle {
+  color: #b0bcd8;
+  text-shadow:
+    0 0 8px rgba(180, 200, 255, 0.15);
 }
