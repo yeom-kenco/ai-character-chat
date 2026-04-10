@@ -60,17 +60,36 @@ export async function buildContextMessages(
   const oldMessages = allMessages.slice(0, -RECENT_MESSAGE_COUNT);
   const recentMessages = allMessages.slice(-RECENT_MESSAGE_COUNT);
 
-  const newSummary = await generateSummary(oldMessages, existingSummary);
+  const summaryResult = await generateSummary(oldMessages, existingSummary);
+  const newSummary = summaryResult || undefined;
 
-  return {
-    messages: [
-      {
-        role: 'user',
-        content: `[이전 대화 요약]\n${newSummary}`,
-      },
-      { role: 'assistant', content: '네, 이전 대화를 기억하고 있습니다.' },
-      ...recentMessages,
-    ],
-    newSummary,
-  };
+  if (newSummary) {
+    return {
+      messages: [
+        {
+          role: 'user',
+          content: `[이전 대화 요약]\n${newSummary}`,
+        },
+        { role: 'assistant', content: '네, 이전 대화를 기억하고 있습니다.' },
+        ...recentMessages,
+      ],
+      newSummary,
+    };
+  }
+
+  // 요약 생성 실패 시 기존 요약 유지 + 최근 메시지만 반환
+  if (existingSummary) {
+    return {
+      messages: [
+        {
+          role: 'user',
+          content: `[이전 대화 요약]\n${existingSummary}`,
+        },
+        { role: 'assistant', content: '네, 이전 대화를 기억하고 있습니다.' },
+        ...recentMessages,
+      ],
+    };
+  }
+
+  return { messages: recentMessages };
 }
