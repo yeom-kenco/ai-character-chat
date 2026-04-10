@@ -7,7 +7,10 @@ import ChatMessage from './ChatMessage';
 import ChatInput from './ChatInput';
 import ErrorMessage from './ErrorMessage';
 import { streamChat } from '@/lib/sse';
+import { splitIntoMessages } from '@/lib/splitMessages';
 import type { Message } from '@/types/chat';
+
+const MESSAGE_SPLIT_DELAY = 800;
 
 interface ChatRoomProps {
   characterId: string;
@@ -120,7 +123,44 @@ export default function ChatRoom({
             return updated;
           });
         },
-        onDone: () => {},
+        onDone: () => {
+          setMessages((prev) => {
+            const lastMsg = prev[prev.length - 1];
+            if (lastMsg.role !== 'assistant' || !lastMsg.content) return prev;
+
+            const chunks = splitIntoMessages(lastMsg.content);
+            if (chunks.length <= 1) return prev;
+
+            const withoutLast = prev.slice(0, -1);
+            const firstChunk: Message = {
+              ...lastMsg,
+              content: chunks[0],
+            };
+
+            const splitMessages: Message[] = chunks.slice(1).map((chunk, i) => ({
+              id: `${lastMsg.id}-split-${i}`,
+              role: 'assistant' as const,
+              content: '',
+            }));
+
+            const result = [...withoutLast, firstChunk, ...splitMessages];
+
+            // 시간차로 분할 메시지 내용을 채움
+            chunks.slice(1).forEach((chunk, i) => {
+              setTimeout(() => {
+                setMessages((current) =>
+                  current.map((m) =>
+                    m.id === `${lastMsg.id}-split-${i}`
+                      ? { ...m, content: chunk }
+                      : m,
+                  ),
+                );
+              }, MESSAGE_SPLIT_DELAY * (i + 1));
+            });
+
+            return result;
+          });
+        },
         onError: (errorMsg) => {
           setError(errorMsg);
           setMessages((prev) => prev.slice(0, -2));
