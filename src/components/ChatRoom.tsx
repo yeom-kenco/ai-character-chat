@@ -103,11 +103,8 @@ export default function ChatRoom({
             return updated;
           });
         },
-        onDone: () => {
-          setIsStreaming(false);
-        },
+        onDone: () => {},
         onError: (errorMsg) => {
-          setIsStreaming(false);
           setError(errorMsg);
           setMessages((prev) => prev.slice(0, -1));
         },
@@ -151,7 +148,7 @@ export default function ChatRoom({
         onScroll={handleScroll}
         className="flex-1 overflow-y-auto px-4 py-4"
       >
-        <div className="mx-auto flex max-w-3xl flex-col gap-4">
+        <div role="log" aria-live="polite" className="mx-auto flex max-w-3xl flex-col gap-4">
           {messages.map((message) => (
             <ChatMessage
               key={message.id}
