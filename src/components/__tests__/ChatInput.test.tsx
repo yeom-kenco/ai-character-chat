@@ -46,6 +46,26 @@ describe('ChatInput', () => {
     expect(handleSend).not.toHaveBeenCalled();
   });
 
+  it('sends message on Enter key', async () => {
+    const handleSend = vi.fn();
+    render(<ChatInput onSend={handleSend} disabled={false} />);
+
+    const textarea = screen.getByPlaceholderText('메시지를 입력하세요...');
+    await userEvent.type(textarea, 'Enter test{Enter}');
+
+    expect(handleSend).toHaveBeenCalledWith('Enter test');
+  });
+
+  it('does not send on Shift+Enter', async () => {
+    const handleSend = vi.fn();
+    render(<ChatInput onSend={handleSend} disabled={false} />);
+
+    const textarea = screen.getByPlaceholderText('메시지를 입력하세요...');
+    await userEvent.type(textarea, 'Line one{Shift>}{Enter}{/Shift}');
+
+    expect(handleSend).not.toHaveBeenCalled();
+  });
+
   it('disables send button when disabled prop is true', () => {
     render(<ChatInput onSend={vi.fn()} disabled={true} />);
 
