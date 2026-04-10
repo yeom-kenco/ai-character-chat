@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Image, { StaticImageData } from 'next/image';
 import { prepare, layout } from '@chenglou/pretext';
 
@@ -36,15 +36,37 @@ export default function ChatMessage({
   characterImage,
   isStreaming = false,
 }: ChatMessageProps) {
-  const bubbleRef = useRef<HTMLDivElement>(null);
-  const bubbleWidth = bubbleRef.current?.offsetWidth ?? 0;
+  const [bubbleWidth, setBubbleWidth] = useState(0);
+  const bubbleRef = useCallback((node: HTMLDivElement | null) => {
+    if (node) setBubbleWidth(node.offsetWidth);
+  }, []);
+  const resizeRef = useRef<HTMLDivElement | null>(null);
   const preHeight = useBubbleHeight(content, bubbleWidth);
+
+  useEffect(() => {
+    const el = resizeRef.current;
+    if (!el) return;
+
+    const observer = new ResizeObserver(([entry]) => {
+      setBubbleWidth(entry.contentRect.width + 32);
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  const setBothRefs = useCallback(
+    (node: HTMLDivElement | null) => {
+      resizeRef.current = node;
+      bubbleRef(node);
+    },
+    [bubbleRef],
+  );
 
   if (role === 'user') {
     return (
       <div className="flex justify-end">
         <div
-          ref={bubbleRef}
+          ref={setBothRefs}
           className="max-w-[75%] rounded-2xl rounded-br-sm bg-zinc-900 px-4 py-3 text-sm text-white dark:bg-zinc-100 dark:text-zinc-900"
           style={preHeight > 0 ? { minHeight: preHeight } : undefined}
         >
@@ -74,7 +96,7 @@ export default function ChatMessage({
           </p>
         )}
         <div
-          ref={bubbleRef}
+          ref={setBothRefs}
           className="rounded-2xl rounded-tl-sm bg-zinc-100 px-4 py-3 text-sm text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100"
           style={preHeight > 0 ? { minHeight: preHeight } : undefined}
         >
