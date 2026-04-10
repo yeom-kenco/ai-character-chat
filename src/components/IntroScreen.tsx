@@ -30,6 +30,8 @@ export default function IntroScreen({ onComplete }: IntroScreenProps) {
 
   return (
     <div
+      role="dialog"
+      aria-labelledby="intro-title"
       className={`fixed inset-0 z-50 flex items-center justify-center transition-opacity duration-1500 ${
         phase === 'fading' ? 'opacity-0' : 'opacity-100'
       }`}
@@ -44,6 +46,7 @@ export default function IntroScreen({ onComplete }: IntroScreenProps) {
         }`}
       >
         <h1
+          id="intro-title"
           className={`text-5xl font-bold tracking-tight transition-all duration-700 ${
             phase === 'title'
               ? 'translate-y-2 opacity-0'
