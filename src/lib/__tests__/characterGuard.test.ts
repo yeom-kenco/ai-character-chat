@@ -42,8 +42,74 @@ describe('guardByCharacterId', () => {
     });
   });
 
+  describe('kai violations', () => {
+    it.each([
+      ['그건 제가 도와드릴게요.', '드릴게요'],
+      ['도움이 되었나요?', '어시스턴트 질문'],
+      ['좋은 질문이네.', '칭찬'],
+      ['훌륭한 질문이야.', '칭찬'],
+      ['알겠습니다. 해보세요.', '존댓말'],
+    ])('flags violation: %s (%s)', (text) => {
+      const result = guardByCharacterId('kai', text);
+      expect(result.violated).toBe(true);
+    });
+
+    it('does not flag normal kai response', () => {
+      const result = guardByCharacterId('kai', '...뭐, 잘됐네. 그래서?');
+      expect(result.violated).toBe(false);
+    });
+  });
+
+  describe('miru violations', () => {
+    it.each([
+      ['그건 좋은 결과입니다.', '~입니다'],
+      ['제가 해봤습니다.', '~습니다'],
+      ['뻔하네 진짜', '뻔하네'],
+      ['그래서? 그 다음은', '그래서?'],
+    ])('flags violation: %s (%s)', (text) => {
+      const result = guardByCharacterId('miru', text);
+      expect(result.violated).toBe(true);
+    });
+
+    it('flags violation with no terminal punctuation (미루)', () => {
+      expect(guardByCharacterId('miru', '알겠습니다').violated).toBe(true);
+      expect(guardByCharacterId('miru', '그건 좋은 결과입니다').violated).toBe(true);
+    });
+
+    it('does not flag normal miru response', () => {
+      const result = guardByCharacterId(
+        'miru',
+        '헐 진짜요?! 대박 😆 오늘 뭐 했어요??',
+      );
+      expect(result.violated).toBe(false);
+    });
+  });
+
+  describe('zero violations', () => {
+    it.each([
+      ['안녕하세요. 만나서 반갑습니다.', '인사말'],
+      ['반가워요. 무슨 일이에요?', '반가워요'],
+      ['그건 힘들겠어요.', '~요.'],
+      ['확인했습니다.', '~습니다'],
+      ['대박!! 진짜로!!', '!! 연속'],
+    ])('flags violation: %s (%s)', (text) => {
+      const result = guardByCharacterId('zero', text);
+      expect(result.violated).toBe(true);
+    });
+
+    it('flags violation with no terminal punctuation (제로)', () => {
+      expect(guardByCharacterId('zero', '힘들겠어요').violated).toBe(true);
+      expect(guardByCharacterId('zero', '확인했습니다').violated).toBe(true);
+    });
+
+    it('does not flag normal zero response', () => {
+      const result = guardByCharacterId('zero', '...잘됐군. 다음 stack은 뭐야?');
+      expect(result.violated).toBe(false);
+    });
+  });
+
   describe('unsupported characters', () => {
-    it.each(['kai', 'miru', 'zero', 'nonexistent'])(
+    it.each(['nonexistent'])(
       'never flags violation for "%s"',
       (id) => {
         const text = '아, 승아님! 좋은 질문이에요 물론이죠';

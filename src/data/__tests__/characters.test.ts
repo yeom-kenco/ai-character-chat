@@ -70,13 +70,15 @@ describe('characters array', () => {
     expect(luna.reanchor).toContain('루나');
   });
 
-  it.each(['kai', 'miru', 'zero'])(
-    'non-luna character "%s" leaves reanchor undefined',
-    (id) => {
-      const character = characters.find((c) => c.id === id)!;
-      expect(character.reanchor).toBeUndefined();
-    },
-  );
+  it.each([
+    ['kai', '카이'],
+    ['miru', '미루'],
+    ['zero', '제로'],
+  ])('character "%s" has reanchor reminder set (contains "%s")', (id, name) => {
+    const character = characters.find((c) => c.id === id)!;
+    expect(character.reanchor).toBeDefined();
+    expect(character.reanchor).toContain(name);
+  });
 
   it('luna has sampling parameters set (topP, presencePenalty, frequencyPenalty)', () => {
     const luna = characters.find((c) => c.id === 'luna')!;
@@ -104,6 +106,15 @@ describe('characters array', () => {
       expect(character.systemPrompt).toContain('Layer 3');
       expect(character.systemPrompt).toContain('Layer 4');
       expect(character.systemPrompt).toContain('Layer 5');
+    },
+  );
+
+  it.each(EXPECTED_IDS)(
+    'character "%s" systemPrompt contains Layer 0 (identity anchor) and Layer 9 (Few-shot)',
+    (id) => {
+      const character = characters.find((c) => c.id === id)!;
+      expect(character.systemPrompt).toContain('Layer 0');
+      expect(character.systemPrompt).toContain('Layer 9');
     },
   );
 });
