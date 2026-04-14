@@ -1,15 +1,14 @@
 // @vitest-environment node
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-vi.mock('@/lib/openai', () => ({
-  getOpenAIClient: vi.fn(),
-  OPENAI_MODEL: 'gpt-4o-mini',
+vi.mock('@/lib/llm', () => ({
+  getLLMClient: vi.fn(),
 }));
 
 import { buildContextMessages, generateSummary } from '../context';
-import { getOpenAIClient } from '@/lib/openai';
+import { getLLMClient } from '@/lib/llm';
 
-const mockedGetOpenAIClient = vi.mocked(getOpenAIClient);
+const mockedGetLLMClient = vi.mocked(getLLMClient);
 
 function makeMessages(count: number) {
   return Array.from({ length: count }, (_, i) => ({
@@ -20,14 +19,9 @@ function makeMessages(count: number) {
 
 function makeFakeClient(summaryText: string) {
   return {
-    chat: {
-      completions: {
-        create: vi.fn().mockResolvedValue({
-          choices: [{ message: { content: summaryText } }],
-        }),
-      },
-    },
-  } as unknown as ReturnType<typeof getOpenAIClient>;
+    chatStream: vi.fn(),
+    generateText: vi.fn().mockResolvedValue(summaryText),
+  };
 }
 
 describe('buildContextMessages', () => {
@@ -59,19 +53,19 @@ describe('buildContextMessages', () => {
 
   it('triggers summarization at threshold + 1 (21 messages)', async () => {
     const fakeClient = makeFakeClient('경계값 요약');
-    mockedGetOpenAIClient.mockReturnValue(fakeClient);
+    mockedGetLLMClient.mockResolvedValue(fakeClient);
 
     const messages = makeMessages(21);
     const result = await buildContextMessages(messages);
 
-    expect(fakeClient.chat.completions.create).toHaveBeenCalledOnce();
+    expect(fakeClient.generateText).toHaveBeenCalledOnce();
     expect(result.newSummary).toBe('경계값 요약');
     expect(result.messages.slice(2)).toEqual(messages.slice(-10));
   });
 
   it('summarizes old messages and returns summary pair + last 10 when count > 20', async () => {
     const fakeClient = makeFakeClient('대화 요약 결과입니다.');
-    mockedGetOpenAIClient.mockReturnValue(fakeClient);
+    mockedGetLLMClient.mockResolvedValue(fakeClient);
 
     const messages = makeMessages(25);
     const result = await buildContextMessages(messages);
@@ -90,37 +84,27 @@ describe('generateSummary', () => {
 
   it('calls the API and returns the summary text', async () => {
     const fakeClient = makeFakeClient('요약된 텍스트');
-    mockedGetOpenAIClient.mockReturnValue(fakeClient);
+    mockedGetLLMClient.mockResolvedValue(fakeClient);
 
     const result = await generateSummary(makeMessages(5));
-    expect(fakeClient.chat.completions.create).toHaveBeenCalledOnce();
+    expect(fakeClient.generateText).toHaveBeenCalledOnce();
     expect(result).toBe('요약된 텍스트');
   });
 
   it('includes existing summary in the prompt when provided', async () => {
     const fakeClient = makeFakeClient('updated summary');
-    mockedGetOpenAIClient.mockReturnValue(fakeClient);
+    mockedGetLLMClient.mockResolvedValue(fakeClient);
 
     await generateSummary(makeMessages(3), '기존 요약');
 
-    const mockCreate = fakeClient.chat.completions.create as ReturnType<typeof vi.fn>;
-    const callArgs = mockCreate.mock.calls[0][0] as { messages: { content: string }[] };
-    const prompt = callArgs.messages[0].content;
+    const prompt = fakeClient.generateText.mock.calls[0][0] as string;
     expect(prompt).toContain('기존 대화 요약');
     expect(prompt).toContain('기존 요약');
   });
 
-  it('returns empty string when content is null', async () => {
-    const fakeClient = {
-      chat: {
-        completions: {
-          create: vi.fn().mockResolvedValue({
-            choices: [{ message: { content: null } }],
-          }),
-        },
-      },
-    } as unknown as ReturnType<typeof getOpenAIClient>;
-    mockedGetOpenAIClient.mockReturnValue(fakeClient);
+  it('returns empty string when LLM returns empty content', async () => {
+    const fakeClient = makeFakeClient('');
+    mockedGetLLMClient.mockResolvedValue(fakeClient);
 
     const result = await generateSummary(makeMessages(3));
     expect(result).toBe('');

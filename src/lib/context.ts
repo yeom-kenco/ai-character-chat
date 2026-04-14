@@ -1,4 +1,4 @@
-import { getOpenAIClient, OPENAI_MODEL } from './openai';
+import { getLLMClient } from './llm';
 
 interface SimpleMessage {
   role: 'user' | 'assistant';
@@ -12,8 +12,6 @@ export async function generateSummary(
   messages: SimpleMessage[],
   existingSummary?: string,
 ): Promise<string> {
-  const client = getOpenAIClient();
-
   const conversationText = messages
     .map((m) => `${m.role === 'user' ? '사용자' : 'AI'}: ${m.content}`)
     .join('\n');
@@ -22,13 +20,8 @@ export async function generateSummary(
     ? `기존 대화 요약:\n${existingSummary}\n\n새로운 대화 내용:\n${conversationText}\n\n위 기존 요약과 새 대화를 합쳐서 하나의 요약으로 정리해주세요. 사용자의 이름, 취향, 주요 대화 맥락을 반드시 포함하세요. 3~5문장으로 간결하게 작성하세요.`
     : `다음 대화를 요약해주세요. 사용자의 이름, 취향, 주요 대화 맥락을 반드시 포함하세요. 3~5문장으로 간결하게 작성하세요.\n\n${conversationText}`;
 
-  const response = await client.chat.completions.create({
-    model: OPENAI_MODEL,
-    messages: [{ role: 'user', content: prompt }],
-    max_tokens: 300,
-  });
-
-  return response.choices[0]?.message?.content ?? '';
+  const llm = await getLLMClient();
+  return llm.generateText(prompt, 300);
 }
 
 export interface ContextResult {

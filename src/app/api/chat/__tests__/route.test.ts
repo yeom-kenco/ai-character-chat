@@ -2,9 +2,8 @@
 import { afterEach, describe, it, expect, vi } from 'vitest';
 import { NextRequest } from 'next/server';
 
-vi.mock('@/lib/openai', () => ({
-  getOpenAIClient: vi.fn(),
-  OPENAI_MODEL: 'gpt-4o-mini',
+vi.mock('@/lib/llm', () => ({
+  getLLMClient: vi.fn(),
 }));
 
 vi.mock('@/lib/context', () => ({
@@ -14,9 +13,9 @@ vi.mock('@/lib/context', () => ({
 }));
 
 import { POST } from '../route';
-import { getOpenAIClient } from '@/lib/openai';
+import { getLLMClient } from '@/lib/llm';
 
-const mockedGetOpenAIClient = vi.mocked(getOpenAIClient);
+const mockedGetLLMClient = vi.mocked(getLLMClient);
 
 function createRequest(body: unknown) {
   return new NextRequest('http://localhost/api/chat', {
@@ -91,9 +90,9 @@ describe('POST /api/chat', () => {
   });
 
   it('returns 500 when OPENAI_API_KEY is not set', async () => {
-    mockedGetOpenAIClient.mockImplementation(() => {
-      throw new Error('OPENAI_API_KEY 환경변수가 설정되지 않았습니다.');
-    });
+    mockedGetLLMClient.mockRejectedValue(
+      new Error('OPENAI_API_KEY 환경변수가 설정되지 않았습니다.'),
+    );
 
     const response = await POST(
       createRequest({
@@ -105,5 +104,22 @@ describe('POST /api/chat', () => {
 
     expect(response.status).toBe(500);
     expect(data.error).toBe('API 키가 설정되지 않았습니다.');
+  });
+
+  it('surfaces real error message for non-API-key failures (e.g. invalid LLM_PROVIDER)', async () => {
+    mockedGetLLMClient.mockRejectedValue(
+      new Error('지원하지 않는 LLM_PROVIDER: claude'),
+    );
+
+    const response = await POST(
+      createRequest({
+        characterId: 'luna',
+        messages: [{ role: 'user', content: 'hello' }],
+      }),
+    );
+    const data = await response.json();
+
+    expect(response.status).toBe(500);
+    expect(data.error).toBe('지원하지 않는 LLM_PROVIDER: claude');
   });
 });
