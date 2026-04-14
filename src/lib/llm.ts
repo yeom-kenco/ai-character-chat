@@ -86,9 +86,11 @@ async function createGeminiClient(): Promise<LLMClient> {
   // npm install @google/genai
   // .env.local에 LLM_PROVIDER=gemini, GEMINI_API_KEY=... 설정
   //
-  // 샘플링 파라미터 매핑:
-  //   - topP → config.topP (직결)
-  //   - presencePenalty / frequencyPenalty → Gemini는 미지원 (무시)
+  // 샘플링 파라미터 매핑 (@google/genai의 GenerateContentConfig):
+  //   - topP → config.topP
+  //   - presencePenalty → config.presencePenalty
+  //   - frequencyPenalty → config.frequencyPenalty
+  // 세 값 모두 Gemini가 지원하므로 그대로 전달할 것.
 
   throw new Error(
     'Gemini 클라이언트는 아직 활성화되지 않았습니다. @google/genai를 설치하고 이 함수를 구현하세요.',
@@ -98,10 +100,17 @@ async function createGeminiClient(): Promise<LLMClient> {
   // const { GoogleGenAI } = await import('@google/genai');
   // const client = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
   // return {
-  //   async chatStream({ systemPrompt, messages, maxTokens, temperature, callbacks }) {
+  //   async chatStream({ systemPrompt, messages, maxTokens, temperature, topP, presencePenalty, frequencyPenalty, callbacks }) {
   //     const response = await client.models.generateContentStream({
   //       model: 'gemini-2.5-flash',
-  //       config: { systemInstruction: systemPrompt, temperature, maxOutputTokens: maxTokens },
+  //       config: {
+  //         systemInstruction: systemPrompt,
+  //         temperature,
+  //         maxOutputTokens: maxTokens,
+  //         ...(topP !== undefined && { topP }),
+  //         ...(presencePenalty !== undefined && { presencePenalty }),
+  //         ...(frequencyPenalty !== undefined && { frequencyPenalty }),
+  //       },
   //       contents: messages.map(m => ({
   //         role: m.role === 'assistant' ? 'model' : 'user',
   //         parts: [{ text: m.content }],
