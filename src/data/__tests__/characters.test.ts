@@ -8,7 +8,7 @@ import {
 const EXPECTED_IDS = ['luna', 'kai', 'miru', 'zero'];
 
 const EXPECTED_SPECS: Record<string, { temperature: number; maxTokens: number }> = {
-  luna: { temperature: 0.9, maxTokens: 500 },
+  luna: { temperature: 0.85, maxTokens: 400 },
   kai: { temperature: 0.6, maxTokens: 300 },
   miru: { temperature: 0.8, maxTokens: 500 },
   zero: { temperature: 0.5, maxTokens: 250 },
