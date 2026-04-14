@@ -63,6 +63,40 @@ describe('buildContextMessages', () => {
     expect(result.messages.slice(2)).toEqual(messages.slice(-10));
   });
 
+  it('returns reanchorReminder at multiples of 10 when reanchor is provided', async () => {
+    const messages = makeMessages(10);
+    const result = await buildContextMessages(messages, undefined, '[앵커]');
+    expect(result.reanchorReminder).toBe('[앵커]');
+  });
+
+  it('omits reanchorReminder when count is not a multiple of 10', async () => {
+    const messages = makeMessages(7);
+    const result = await buildContextMessages(messages, undefined, '[앵커]');
+    expect(result.reanchorReminder).toBeUndefined();
+  });
+
+  it('omits reanchorReminder when reanchor arg is not provided', async () => {
+    const messages = makeMessages(10);
+    const result = await buildContextMessages(messages);
+    expect(result.reanchorReminder).toBeUndefined();
+  });
+
+  it('omits reanchorReminder at 0 messages', async () => {
+    const result = await buildContextMessages([], undefined, '[앵커]');
+    expect(result.reanchorReminder).toBeUndefined();
+  });
+
+  it('still returns reanchorReminder together with newSummary when both trigger', async () => {
+    const fakeClient = makeFakeClient('합쳐진 요약');
+    mockedGetLLMClient.mockResolvedValue(fakeClient);
+
+    const messages = makeMessages(30);
+    const result = await buildContextMessages(messages, undefined, '[앵커]');
+
+    expect(result.newSummary).toBe('합쳐진 요약');
+    expect(result.reanchorReminder).toBe('[앵커]');
+  });
+
   it('summarizes old messages and returns summary pair + last 10 when count > 20', async () => {
     const fakeClient = makeFakeClient('대화 요약 결과입니다.');
     mockedGetLLMClient.mockResolvedValue(fakeClient);

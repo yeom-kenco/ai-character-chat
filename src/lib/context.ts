@@ -7,6 +7,7 @@ interface SimpleMessage {
 
 const RECENT_MESSAGE_COUNT = 10;
 const SUMMARIZE_THRESHOLD = 20;
+const REANCHOR_INTERVAL = 10;
 
 export async function generateSummary(
   messages: SimpleMessage[],
@@ -27,12 +28,21 @@ export async function generateSummary(
 export interface ContextResult {
   messages: SimpleMessage[];
   newSummary?: string;
+  reanchorReminder?: string;
+}
+
+function shouldReanchor(count: number): boolean {
+  return count > 0 && count % REANCHOR_INTERVAL === 0;
 }
 
 export async function buildContextMessages(
   allMessages: SimpleMessage[],
   existingSummary?: string,
+  reanchor?: string,
 ): Promise<ContextResult> {
+  const reanchorReminder =
+    reanchor && shouldReanchor(allMessages.length) ? reanchor : undefined;
+
   if (allMessages.length <= SUMMARIZE_THRESHOLD) {
     if (existingSummary) {
       return {
@@ -44,9 +54,10 @@ export async function buildContextMessages(
           { role: 'assistant', content: '네, 이전 대화를 기억하고 있습니다.' },
           ...allMessages,
         ],
+        reanchorReminder,
       };
     }
-    return { messages: allMessages };
+    return { messages: allMessages, reanchorReminder };
   }
 
   const oldMessages = allMessages.slice(0, -RECENT_MESSAGE_COUNT);
@@ -66,6 +77,7 @@ export async function buildContextMessages(
         ...recentMessages,
       ],
       newSummary,
+      reanchorReminder,
     };
   }
 
@@ -79,8 +91,9 @@ export async function buildContextMessages(
         { role: 'assistant', content: '네, 이전 대화를 기억하고 있습니다.' },
         ...recentMessages,
       ],
+      reanchorReminder,
     };
   }
 
-  return { messages: recentMessages };
+  return { messages: recentMessages, reanchorReminder };
 }

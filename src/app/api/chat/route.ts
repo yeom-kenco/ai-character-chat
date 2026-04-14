@@ -71,11 +71,17 @@ export async function POST(request: NextRequest) {
 
   let contextMessages: ChatMessage[];
   let newSummary: string | undefined;
+  let reanchorReminder: string | undefined;
 
   try {
-    const context = await buildContextMessages(messages, summary);
+    const context = await buildContextMessages(
+      messages,
+      summary,
+      character.reanchor,
+    );
     contextMessages = context.messages;
     newSummary = context.newSummary;
+    reanchorReminder = context.reanchorReminder;
   } catch {
     contextMessages = messages;
   }
@@ -92,9 +98,13 @@ export async function POST(request: NextRequest) {
           );
         }
 
-        const systemPrompt = sanitizedUserName
+        const baseSystemPrompt = sanitizedUserName
           ? `${character.systemPrompt}\n\n## 사용자 정보\n상대방의 이름은 "${sanitizedUserName}"이다. 캐릭터의 성격과 말투에 맞는 호칭으로 이름을 자연스럽게 불러라.`
           : character.systemPrompt;
+
+        const systemPrompt = reanchorReminder
+          ? `${baseSystemPrompt}\n\n${reanchorReminder}`
+          : baseSystemPrompt;
 
         const MAX_RETRIES = 3;
         let lastError: unknown;

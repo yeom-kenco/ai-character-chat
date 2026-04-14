@@ -63,6 +63,21 @@ describe('characters array', () => {
     },
   );
 
+  it('luna has reanchor reminder set', () => {
+    const luna = characters.find((c) => c.id === 'luna')!;
+    expect(luna.reanchor).toBeDefined();
+    expect(luna.reanchor!.length).toBeGreaterThan(0);
+    expect(luna.reanchor).toContain('루나');
+  });
+
+  it.each(['kai', 'miru', 'zero'])(
+    'non-luna character "%s" leaves reanchor undefined',
+    (id) => {
+      const character = characters.find((c) => c.id === id)!;
+      expect(character.reanchor).toBeUndefined();
+    },
+  );
+
   it('luna has sampling parameters set (topP, presencePenalty, frequencyPenalty)', () => {
     const luna = characters.find((c) => c.id === 'luna')!;
     expect(luna.topP).toBe(0.9);
