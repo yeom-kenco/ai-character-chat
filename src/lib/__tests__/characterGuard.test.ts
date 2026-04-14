@@ -42,8 +42,26 @@ describe('guardByCharacterId', () => {
     });
   });
 
+  describe('kai violations', () => {
+    it.each([
+      ['그건 제가 도와드릴게요.', '드릴게요'],
+      ['도움이 되었나요?', '어시스턴트 질문'],
+      ['좋은 질문이네.', '칭찬'],
+      ['훌륭한 질문이야.', '칭찬'],
+      ['알겠습니다. 해보세요.', '존댓말'],
+    ])('flags violation: %s (%s)', (text) => {
+      const result = guardByCharacterId('kai', text);
+      expect(result.violated).toBe(true);
+    });
+
+    it('does not flag normal kai response', () => {
+      const result = guardByCharacterId('kai', '...뭐, 잘됐네. 그래서?');
+      expect(result.violated).toBe(false);
+    });
+  });
+
   describe('unsupported characters', () => {
-    it.each(['kai', 'miru', 'zero', 'nonexistent'])(
+    it.each(['miru', 'zero', 'nonexistent'])(
       'never flags violation for "%s"',
       (id) => {
         const text = '아, 승아님! 좋은 질문이에요 물론이죠';

@@ -70,8 +70,14 @@ describe('characters array', () => {
     expect(luna.reanchor).toContain('루나');
   });
 
-  it.each(['kai', 'miru', 'zero'])(
-    'non-luna character "%s" leaves reanchor undefined',
+  it('kai has reanchor reminder set', () => {
+    const kai = characters.find((c) => c.id === 'kai')!;
+    expect(kai.reanchor).toBeDefined();
+    expect(kai.reanchor).toContain('카이');
+  });
+
+  it.each(['miru', 'zero'])(
+    'character "%s" leaves reanchor undefined (pending #28 expansion)',
     (id) => {
       const character = characters.find((c) => c.id === id)!;
       expect(character.reanchor).toBeUndefined();

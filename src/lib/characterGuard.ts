@@ -14,8 +14,16 @@ const LUNA_FORBIDDEN_PATTERNS: RegExp[] = [
   /도와드릴/,
 ];
 
+const KAI_FORBIDDEN_PATTERNS: RegExp[] = [
+  /드릴게요|드릴까요|드리겠/,
+  /도움이 되었나요/,
+  /좋은 질문|훌륭한 질문/,
+  /알겠습니다/,
+];
+
 const GUARDS: Record<string, RegExp[]> = {
   luna: LUNA_FORBIDDEN_PATTERNS,
+  kai: KAI_FORBIDDEN_PATTERNS,
 };
 
 function replaceFirstSentence(text: string): string {
