@@ -60,8 +60,28 @@ describe('guardByCharacterId', () => {
     });
   });
 
+  describe('miru violations', () => {
+    it.each([
+      ['그건 좋은 결과입니다.', '~입니다'],
+      ['제가 해봤습니다.', '~습니다'],
+      ['뻔하네 진짜', '뻔하네'],
+      ['그래서? 그 다음은', '그래서?'],
+    ])('flags violation: %s (%s)', (text) => {
+      const result = guardByCharacterId('miru', text);
+      expect(result.violated).toBe(true);
+    });
+
+    it('does not flag normal miru response', () => {
+      const result = guardByCharacterId(
+        'miru',
+        '헐 진짜요?! 대박 😆 오늘 뭐 했어요??',
+      );
+      expect(result.violated).toBe(false);
+    });
+  });
+
   describe('unsupported characters', () => {
-    it.each(['miru', 'zero', 'nonexistent'])(
+    it.each(['zero', 'nonexistent'])(
       'never flags violation for "%s"',
       (id) => {
         const text = '아, 승아님! 좋은 질문이에요 물론이죠';
