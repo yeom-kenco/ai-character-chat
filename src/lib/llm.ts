@@ -18,6 +18,9 @@ export interface LLMClient {
     messages: { role: 'user' | 'assistant'; content: string }[];
     maxTokens: number;
     temperature: number;
+    topP?: number;
+    presencePenalty?: number;
+    frequencyPenalty?: number;
     callbacks: LLMStreamCallbacks;
   }): Promise<void>;
 
@@ -37,7 +40,16 @@ async function createOpenAIClient(): Promise<LLMClient> {
   const client = getOpenAIClient();
 
   return {
-    async chatStream({ systemPrompt, messages, maxTokens, temperature, callbacks }) {
+    async chatStream({
+      systemPrompt,
+      messages,
+      maxTokens,
+      temperature,
+      topP,
+      presencePenalty,
+      frequencyPenalty,
+      callbacks,
+    }) {
       const response = await client.chat.completions.create({
         model: OPENAI_MODEL,
         messages: [
@@ -46,6 +58,9 @@ async function createOpenAIClient(): Promise<LLMClient> {
         ],
         max_tokens: maxTokens,
         temperature,
+        ...(topP !== undefined && { top_p: topP }),
+        ...(presencePenalty !== undefined && { presence_penalty: presencePenalty }),
+        ...(frequencyPenalty !== undefined && { frequency_penalty: frequencyPenalty }),
         stream: true,
       });
 
@@ -70,6 +85,10 @@ async function createGeminiClient(): Promise<LLMClient> {
   // 두 달 뒤 Gemini로 전환 시 @google/genai 설치 후 이 부분 구현
   // npm install @google/genai
   // .env.local에 LLM_PROVIDER=gemini, GEMINI_API_KEY=... 설정
+  //
+  // 샘플링 파라미터 매핑:
+  //   - topP → config.topP (직결)
+  //   - presencePenalty / frequencyPenalty → Gemini는 미지원 (무시)
 
   throw new Error(
     'Gemini 클라이언트는 아직 활성화되지 않았습니다. @google/genai를 설치하고 이 함수를 구현하세요.',
