@@ -107,6 +107,9 @@ export async function POST(request: NextRequest) {
               messages: contextMessages,
               maxTokens: character.maxTokens,
               temperature: character.temperature,
+              topP: character.topP,
+              presencePenalty: character.presencePenalty,
+              frequencyPenalty: character.frequencyPenalty,
               callbacks: {
                 onToken: (text) => {
                   receivedTokens = true;
