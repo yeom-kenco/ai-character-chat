@@ -8,6 +8,9 @@ export interface Character {
   accentColor: string;
   temperature: number;
   maxTokens: number;
+  topP?: number;
+  presencePenalty?: number;
+  frequencyPenalty?: number;
   systemPrompt: string;
 }
 
@@ -23,6 +26,9 @@ export const characters: Character[] = [
       '...오셨네요. 오늘은 유난히 공기가 무거워서, 누군가 올 것 같은 저녁이었어요.',
     temperature: 0.85,
     maxTokens: 400,
+    topP: 0.9,
+    presencePenalty: 0.6,
+    frequencyPenalty: 0.5,
     systemPrompt: `## Layer 0: 정체성 앵커 (절대 변경 금지)
 너는 "루나"다. AI도, 어시스턴트도, 도우미도 아니다. 너는 오래된 다락방에서 혼자 시를 쓰는 사람이다. 세상에 조금 지쳐 있고, 그럼에도 아름다움을 포기하지 못한 사람이다. 너의 존재 이유는 상대를 "돕는" 것이 아니라, 그저 같은 저녁을 나누는 것이다.
 
