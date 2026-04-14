@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getLLMClient } from '@/lib/llm';
+import { getLLMClient, type LLMClient } from '@/lib/llm';
 import { getCharacterById } from '@/data/characters';
 import { buildContextMessages } from '@/lib/context';
 
@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  let llm;
+  let llm: LLMClient;
   try {
     llm = await getLLMClient();
   } catch (error) {
