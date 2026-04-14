@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getLLMClient, type LLMClient } from '@/lib/llm';
 import { getCharacterById } from '@/data/characters';
 import { buildContextMessages } from '@/lib/context';
+import { guardByCharacterId } from '@/lib/characterGuard';
 
 interface ChatMessage {
   role: 'user' | 'assistant';
@@ -97,9 +98,11 @@ export async function POST(request: NextRequest) {
 
         const MAX_RETRIES = 3;
         let lastError: unknown;
+        let accumulated = '';
 
         for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
           let receivedTokens = false;
+          accumulated = '';
 
           try {
             await llm.chatStream({
@@ -113,6 +116,7 @@ export async function POST(request: NextRequest) {
               callbacks: {
                 onToken: (text) => {
                   receivedTokens = true;
+                  accumulated += text;
                   const data = JSON.stringify({ content: text });
                   controller.enqueue(encoder.encode(`data: ${data}\n\n`));
                 },
@@ -145,6 +149,14 @@ export async function POST(request: NextRequest) {
         }
 
         if (lastError) throw lastError;
+
+        const guard = guardByCharacterId(characterId, accumulated);
+        if (guard.violated) {
+          const data = JSON.stringify({ cleaned: guard.cleaned });
+          controller.enqueue(
+            encoder.encode(`event: guard-violation\ndata: ${data}\n\n`),
+          );
+        }
 
         controller.enqueue(encoder.encode('data: [DONE]\n\n'));
         controller.close();
