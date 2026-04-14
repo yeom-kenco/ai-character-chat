@@ -27,10 +27,18 @@ const MIRU_FORBIDDEN_PATTERNS: RegExp[] = [
   /뻔하네|그래서\?/,
 ];
 
+const ZERO_FORBIDDEN_PATTERNS: RegExp[] = [
+  /^안녕하세요|^반가워요/,
+  /요\./,
+  /습니다[.!?]/,
+  /!!+/,
+];
+
 const GUARDS: Record<string, RegExp[]> = {
   luna: LUNA_FORBIDDEN_PATTERNS,
   kai: KAI_FORBIDDEN_PATTERNS,
   miru: MIRU_FORBIDDEN_PATTERNS,
+  zero: ZERO_FORBIDDEN_PATTERNS,
 };
 
 function replaceFirstSentence(text: string): string {

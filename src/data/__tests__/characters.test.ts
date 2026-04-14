@@ -73,15 +73,11 @@ describe('characters array', () => {
   it.each([
     ['kai', '카이'],
     ['miru', '미루'],
+    ['zero', '제로'],
   ])('character "%s" has reanchor reminder set (contains "%s")', (id, name) => {
     const character = characters.find((c) => c.id === id)!;
     expect(character.reanchor).toBeDefined();
     expect(character.reanchor).toContain(name);
-  });
-
-  it('zero still has reanchor undefined (pending #28 expansion)', () => {
-    const zero = characters.find((c) => c.id === 'zero')!;
-    expect(zero.reanchor).toBeUndefined();
   });
 
   it('luna has sampling parameters set (topP, presencePenalty, frequencyPenalty)', () => {

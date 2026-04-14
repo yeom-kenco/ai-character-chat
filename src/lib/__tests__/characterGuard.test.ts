@@ -80,8 +80,26 @@ describe('guardByCharacterId', () => {
     });
   });
 
+  describe('zero violations', () => {
+    it.each([
+      ['안녕하세요. 만나서 반갑습니다.', '인사말'],
+      ['반가워요. 무슨 일이에요?', '반가워요'],
+      ['그건 힘들겠어요.', '~요.'],
+      ['확인했습니다.', '~습니다'],
+      ['대박!! 진짜로!!', '!! 연속'],
+    ])('flags violation: %s (%s)', (text) => {
+      const result = guardByCharacterId('zero', text);
+      expect(result.violated).toBe(true);
+    });
+
+    it('does not flag normal zero response', () => {
+      const result = guardByCharacterId('zero', '...잘됐군. 다음 stack은 뭐야?');
+      expect(result.violated).toBe(false);
+    });
+  });
+
   describe('unsupported characters', () => {
-    it.each(['zero', 'nonexistent'])(
+    it.each(['nonexistent'])(
       'never flags violation for "%s"',
       (id) => {
         const text = '아, 승아님! 좋은 질문이에요 물론이죠';
