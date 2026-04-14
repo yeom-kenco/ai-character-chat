@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getOpenAIClient, OPENAI_MODEL } from '@/lib/openai';
+import { getLLMClient } from '@/lib/llm';
 import { getCharacterById } from '@/data/characters';
 import { buildContextMessages } from '@/lib/context';
 
@@ -55,9 +55,9 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  let client;
+  let llm;
   try {
-    client = getOpenAIClient();
+    llm = await getLLMClient();
   } catch {
     return NextResponse.json(
       { error: 'API 키가 설정되지 않았습니다.' },
@@ -92,14 +92,6 @@ export async function POST(request: NextRequest) {
           ? `${character.systemPrompt}\n\n## 사용자 정보\n상대방의 이름은 "${sanitizedUserName}"이다. 캐릭터의 성격과 말투에 맞는 호칭으로 이름을 자연스럽게 불러라.`
           : character.systemPrompt;
 
-        const openaiMessages = [
-          { role: 'system' as const, content: systemPrompt },
-          ...contextMessages.map((m) => ({
-            role: m.role as 'user' | 'assistant',
-            content: m.content,
-          })),
-        ];
-
         const MAX_RETRIES = 3;
         let lastError: unknown;
 
@@ -107,22 +99,19 @@ export async function POST(request: NextRequest) {
           let receivedTokens = false;
 
           try {
-            const response = await client.chat.completions.create({
-              model: OPENAI_MODEL,
-              messages: openaiMessages,
-              max_tokens: character.maxTokens,
+            await llm.chatStream({
+              systemPrompt,
+              messages: contextMessages,
+              maxTokens: character.maxTokens,
               temperature: character.temperature,
-              stream: true,
+              callbacks: {
+                onToken: (text) => {
+                  receivedTokens = true;
+                  const data = JSON.stringify({ content: text });
+                  controller.enqueue(encoder.encode(`data: ${data}\n\n`));
+                },
+              },
             });
-
-            for await (const chunk of response) {
-              const text = chunk.choices[0]?.delta?.content;
-              if (text) {
-                receivedTokens = true;
-                const data = JSON.stringify({ content: text });
-                controller.enqueue(encoder.encode(`data: ${data}\n\n`));
-              }
-            }
 
             lastError = null;
             break;
