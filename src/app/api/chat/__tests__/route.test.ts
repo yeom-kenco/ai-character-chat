@@ -105,4 +105,21 @@ describe('POST /api/chat', () => {
     expect(response.status).toBe(500);
     expect(data.error).toBe('API 키가 설정되지 않았습니다.');
   });
+
+  it('surfaces real error message for non-API-key failures (e.g. invalid LLM_PROVIDER)', async () => {
+    mockedGetLLMClient.mockRejectedValue(
+      new Error('지원하지 않는 LLM_PROVIDER: claude'),
+    );
+
+    const response = await POST(
+      createRequest({
+        characterId: 'luna',
+        messages: [{ role: 'user', content: 'hello' }],
+      }),
+    );
+    const data = await response.json();
+
+    expect(response.status).toBe(500);
+    expect(data.error).toBe('지원하지 않는 LLM_PROVIDER: claude');
+  });
 });

@@ -58,9 +58,12 @@ export async function POST(request: NextRequest) {
   let llm;
   try {
     llm = await getLLMClient();
-  } catch {
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error('[api/chat] getLLMClient 실패:', message);
+    const isApiKeyMissing = message.includes('API_KEY');
     return NextResponse.json(
-      { error: 'API 키가 설정되지 않았습니다.' },
+      { error: isApiKeyMissing ? 'API 키가 설정되지 않았습니다.' : message },
       { status: 500 },
     );
   }
