@@ -108,6 +108,15 @@ describe('characters array', () => {
       expect(character.systemPrompt).toContain('Layer 5');
     },
   );
+
+  it.each(EXPECTED_IDS)(
+    'character "%s" systemPrompt contains Layer 0 (identity anchor) and Layer 9 (Few-shot)',
+    (id) => {
+      const character = characters.find((c) => c.id === id)!;
+      expect(character.systemPrompt).toContain('Layer 0');
+      expect(character.systemPrompt).toContain('Layer 9');
+    },
+  );
 });
 
 describe('getCharacterById', () => {

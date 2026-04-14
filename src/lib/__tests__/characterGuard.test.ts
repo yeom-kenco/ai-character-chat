@@ -71,6 +71,11 @@ describe('guardByCharacterId', () => {
       expect(result.violated).toBe(true);
     });
 
+    it('flags violation with no terminal punctuation (미루)', () => {
+      expect(guardByCharacterId('miru', '알겠습니다').violated).toBe(true);
+      expect(guardByCharacterId('miru', '그건 좋은 결과입니다').violated).toBe(true);
+    });
+
     it('does not flag normal miru response', () => {
       const result = guardByCharacterId(
         'miru',
@@ -90,6 +95,11 @@ describe('guardByCharacterId', () => {
     ])('flags violation: %s (%s)', (text) => {
       const result = guardByCharacterId('zero', text);
       expect(result.violated).toBe(true);
+    });
+
+    it('flags violation with no terminal punctuation (제로)', () => {
+      expect(guardByCharacterId('zero', '힘들겠어요').violated).toBe(true);
+      expect(guardByCharacterId('zero', '확인했습니다').violated).toBe(true);
     });
 
     it('does not flag normal zero response', () => {

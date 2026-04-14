@@ -22,15 +22,15 @@ const KAI_FORBIDDEN_PATTERNS: RegExp[] = [
 ];
 
 const MIRU_FORBIDDEN_PATTERNS: RegExp[] = [
-  /습니다[.!?]/,
-  /입니다[.!?]/,
+  /습니다(?:[.!?,]|$)/,
+  /입니다(?:[.!?,]|$)/,
   /뻔하네|그래서\?/,
 ];
 
 const ZERO_FORBIDDEN_PATTERNS: RegExp[] = [
   /^안녕하세요|^반가워요/,
-  /요\./,
-  /습니다[.!?]/,
+  /요(?:[.!?,]|$)/,
+  /습니다(?:[.!?,]|$)/,
   /!!+/,
 ];
 
