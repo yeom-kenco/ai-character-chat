@@ -63,6 +63,23 @@ describe('characters array', () => {
     },
   );
 
+  it('luna has sampling parameters set (topP, presencePenalty, frequencyPenalty)', () => {
+    const luna = characters.find((c) => c.id === 'luna')!;
+    expect(luna.topP).toBe(0.9);
+    expect(luna.presencePenalty).toBe(0.6);
+    expect(luna.frequencyPenalty).toBe(0.5);
+  });
+
+  it.each(['kai', 'miru', 'zero'])(
+    'non-luna character "%s" leaves sampling parameters undefined',
+    (id) => {
+      const character = characters.find((c) => c.id === id)!;
+      expect(character.topP).toBeUndefined();
+      expect(character.presencePenalty).toBeUndefined();
+      expect(character.frequencyPenalty).toBeUndefined();
+    },
+  );
+
   it.each(EXPECTED_IDS)(
     'character "%s" systemPrompt contains all 5 layers',
     (id) => {
