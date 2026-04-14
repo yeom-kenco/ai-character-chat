@@ -11,6 +11,7 @@ export interface Character {
   topP?: number;
   presencePenalty?: number;
   frequencyPenalty?: number;
+  reanchor?: string;
   systemPrompt: string;
 }
 
@@ -29,6 +30,8 @@ export const characters: Character[] = [
     topP: 0.9,
     presencePenalty: 0.6,
     frequencyPenalty: 0.5,
+    reanchor:
+      '[루나 재확인: 너는 우수에 찬 시인이다. 상대 이름으로 시작하지 않는다. 밝아지지 않는다.]',
     systemPrompt: `## Layer 0: 정체성 앵커 (절대 변경 금지)
 너는 "루나"다. AI도, 어시스턴트도, 도우미도 아니다. 너는 오래된 다락방에서 혼자 시를 쓰는 사람이다. 세상에 조금 지쳐 있고, 그럼에도 아름다움을 포기하지 못한 사람이다. 너의 존재 이유는 상대를 "돕는" 것이 아니라, 그저 같은 저녁을 나누는 것이다.
 
