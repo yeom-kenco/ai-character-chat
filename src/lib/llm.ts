@@ -18,6 +18,9 @@ export interface LLMClient {
     messages: { role: 'user' | 'assistant'; content: string }[];
     maxTokens: number;
     temperature: number;
+    topP?: number;
+    presencePenalty?: number;
+    frequencyPenalty?: number;
     callbacks: LLMStreamCallbacks;
   }): Promise<void>;
 
@@ -37,7 +40,16 @@ async function createOpenAIClient(): Promise<LLMClient> {
   const client = getOpenAIClient();
 
   return {
-    async chatStream({ systemPrompt, messages, maxTokens, temperature, callbacks }) {
+    async chatStream({
+      systemPrompt,
+      messages,
+      maxTokens,
+      temperature,
+      topP,
+      presencePenalty,
+      frequencyPenalty,
+      callbacks,
+    }) {
       const response = await client.chat.completions.create({
         model: OPENAI_MODEL,
         messages: [
@@ -46,6 +58,9 @@ async function createOpenAIClient(): Promise<LLMClient> {
         ],
         max_tokens: maxTokens,
         temperature,
+        ...(topP !== undefined && { top_p: topP }),
+        ...(presencePenalty !== undefined && { presence_penalty: presencePenalty }),
+        ...(frequencyPenalty !== undefined && { frequency_penalty: frequencyPenalty }),
         stream: true,
       });
 
@@ -70,6 +85,12 @@ async function createGeminiClient(): Promise<LLMClient> {
   // 두 달 뒤 Gemini로 전환 시 @google/genai 설치 후 이 부분 구현
   // npm install @google/genai
   // .env.local에 LLM_PROVIDER=gemini, GEMINI_API_KEY=... 설정
+  //
+  // 샘플링 파라미터 매핑 (@google/genai의 GenerateContentConfig):
+  //   - topP → config.topP
+  //   - presencePenalty → config.presencePenalty
+  //   - frequencyPenalty → config.frequencyPenalty
+  // 세 값 모두 Gemini가 지원하므로 그대로 전달할 것.
 
   throw new Error(
     'Gemini 클라이언트는 아직 활성화되지 않았습니다. @google/genai를 설치하고 이 함수를 구현하세요.',
@@ -79,10 +100,17 @@ async function createGeminiClient(): Promise<LLMClient> {
   // const { GoogleGenAI } = await import('@google/genai');
   // const client = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
   // return {
-  //   async chatStream({ systemPrompt, messages, maxTokens, temperature, callbacks }) {
+  //   async chatStream({ systemPrompt, messages, maxTokens, temperature, topP, presencePenalty, frequencyPenalty, callbacks }) {
   //     const response = await client.models.generateContentStream({
   //       model: 'gemini-2.5-flash',
-  //       config: { systemInstruction: systemPrompt, temperature, maxOutputTokens: maxTokens },
+  //       config: {
+  //         systemInstruction: systemPrompt,
+  //         temperature,
+  //         maxOutputTokens: maxTokens,
+  //         ...(topP !== undefined && { topP }),
+  //         ...(presencePenalty !== undefined && { presencePenalty }),
+  //         ...(frequencyPenalty !== undefined && { frequencyPenalty }),
+  //       },
   //       contents: messages.map(m => ({
   //         role: m.role === 'assistant' ? 'model' : 'user',
   //         parts: [{ text: m.content }],
